@@ -1,5 +1,6 @@
 /bin
 /target
+/tmp
 .idea
 *.iml
 *~
