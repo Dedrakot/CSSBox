@@ -24,9 +24,9 @@ import java.awt.FontFormatException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.fit.cssbox.io.DocumentSource;
 
@@ -43,7 +43,7 @@ public class FontDecoder
         supportedFormats.add("truetype");
     }
     
-    private static Map<URL, String> registeredFonts = new HashMap<>();
+    private static Map<URL, String> registeredFonts = new ConcurrentHashMap<>();
 
     public static void registerFont(URL url, String family)
     {
