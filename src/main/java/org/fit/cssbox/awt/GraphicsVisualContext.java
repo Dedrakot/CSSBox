@@ -297,10 +297,10 @@ public class GraphicsVisualContext extends VisualContext
     
     @Override
     protected String registerExternalFont(TermURI urlstring, String format)
-            throws MalformedURLException, IOException
+            throws IOException
     {
         String nameFound = null;
-        if (format == null || FontDecoder.supportedFormats.contains(format))
+        if (format == null || FontDecoder.isSupported(format))
         {
             URL url = DataURLHandler.createURL(urlstring.getBase(), urlstring.getValue());
             String regName = FontDecoder.findRegisteredFont(url);
@@ -310,7 +310,7 @@ public class GraphicsVisualContext extends VisualContext
                 Font newFont;
                 try {
                     newFont = FontDecoder.decodeFont(imgsrc, format);
-                } catch (FontFormatException e) {
+                } catch (Exception e) {
                     throw new IOException(e);
                 }
                 if (GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(newFont))

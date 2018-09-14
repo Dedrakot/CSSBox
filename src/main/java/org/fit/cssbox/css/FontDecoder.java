@@ -24,9 +24,7 @@ import java.awt.FontFormatException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.fit.cssbox.io.DocumentSource;
 
@@ -37,29 +35,29 @@ import org.fit.cssbox.io.DocumentSource;
  */
 public class FontDecoder
 {
-    public static List<String> supportedFormats;
-    static {
-        supportedFormats = new ArrayList<String>(1);
-        supportedFormats.add("truetype");
-    }
-    
-    private static Map<URL, String> registeredFonts = new HashMap<>();
+    private static FontRegistry fontRegistry = new HashMapFontRegistry();
 
     public static void registerFont(URL url, String family)
     {
-        registeredFonts.put(url, family);
+        fontRegistry.registerFont(url, family);
     }
     
     public static String findRegisteredFont(URL url)
     {
-        return registeredFonts.get(url);
+        return fontRegistry.findRegisteredFont(url);
     }
     
-    public static Font decodeFont(DocumentSource fontSource, String format) throws FontFormatException, IOException
+    public static Font decodeFont(DocumentSource fontSource, String format) throws Exception
     {
-        //TODO decode other formats than TTF
-        return Font.createFont(Font.TRUETYPE_FONT, fontSource.getInputStream());
+        return fontRegistry.decodeFont(fontSource, format);
     }
-    
-    
+
+
+    public static void setFontRegistry(FontRegistry registry) {
+        FontDecoder.fontRegistry = registry;
+    }
+
+    public static boolean isSupported(String format) {
+        return format == null || "truetype".equals(format) ||  fontRegistry.additionalFontSupport(format);
+    }
 }
