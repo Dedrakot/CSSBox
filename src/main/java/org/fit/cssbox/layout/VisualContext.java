@@ -634,14 +634,16 @@ public class VisualContext
                             String regName = FontDecoder.findRegisteredFont(url);
                             if (regName == null)
                             {
-                                DocumentSource imgsrc = viewport.getConfig().createDocumentSource(url);
-                                Font newFont = FontDecoder.decodeFont(imgsrc, format);
-                                if (GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(newFont))
-                                    log.debug("Registered font: {}", newFont.getFontName());
-                                else
-                                    log.debug("Failed to register font: {} (not fatal, probably already existing)", newFont.getFontName());
-                                regName = newFont.getFontName();
-                                FontDecoder.registerFont(url, regName);
+                                try (DocumentSource imgsrc = viewport.getConfig().createDocumentSource(url))
+                                {
+                                    Font newFont = FontDecoder.decodeFont(imgsrc, format);
+                                    if (GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(newFont))
+                                        log.debug("Registered font: {}", newFont.getFontName());
+                                    else
+                                        log.debug("Failed to register font: {} (not fatal, probably already existing)", newFont.getFontName());
+                                    regName = newFont.getFontName();
+                                    FontDecoder.registerFont(url, regName);
+                                }
                             }
                             nameFound = regName;
                         }
