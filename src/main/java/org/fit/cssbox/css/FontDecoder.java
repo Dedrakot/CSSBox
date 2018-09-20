@@ -25,8 +25,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.fit.cssbox.io.DocumentSource;
 
@@ -43,16 +41,16 @@ public class FontDecoder
         supportedFormats.add("truetype");
     }
     
-    private static Map<URL, String> registeredFonts = new ConcurrentHashMap<>();
+    private static UrlRegistry fontRegistry = new HashMapUrlRegistry();
 
     public static void registerFont(URL url, String family)
     {
-        registeredFonts.put(url, family);
+        fontRegistry.registerFont(url, family);
     }
     
     public static String findRegisteredFont(URL url)
     {
-        return registeredFonts.get(url);
+        return fontRegistry.findRegisteredFont(url);
     }
     
     public static Font decodeFont(DocumentSource fontSource, String format) throws FontFormatException, IOException
@@ -60,6 +58,10 @@ public class FontDecoder
         //TODO decode other formats than TTF
         return Font.createFont(Font.TRUETYPE_FONT, fontSource.getInputStream());
     }
-    
+
+
+    public static void setFontRegistry(UrlRegistry registry) {
+        FontDecoder.fontRegistry = registry;
+    }
     
 }
