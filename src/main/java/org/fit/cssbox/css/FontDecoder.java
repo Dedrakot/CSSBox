@@ -41,7 +41,7 @@ public class FontDecoder
         supportedFormats.add("truetype");
     }
     
-    private static UrlRegistry fontRegistry = new HashMapUrlRegistry();
+    private static FontRegistry fontRegistry = new HashMapFontRegistry();
 
     public static void registerFont(URL url, String family)
     {
@@ -55,13 +55,12 @@ public class FontDecoder
     
     public static Font decodeFont(DocumentSource fontSource, String format) throws FontFormatException, IOException
     {
-        //TODO decode other formats than TTF
-        return Font.createFont(Font.TRUETYPE_FONT, fontSource.getInputStream());
+        return fontRegistry.decodeFont(fontSource, format);
     }
 
 
-    public static void setFontRegistry(UrlRegistry registry) {
+    public static void setFontRegistry(FontRegistry registry) {
         FontDecoder.fontRegistry = registry;
     }
-    
+
 }
