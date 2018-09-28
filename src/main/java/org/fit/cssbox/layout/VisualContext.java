@@ -208,7 +208,7 @@ public class VisualContext
     {
         return textDecoration;
     }
-    
+
     /**
      * Returns the letter spacing used for the box.
      * @return letter spacing
@@ -350,7 +350,7 @@ public class VisualContext
             else if (decor != TextDecoration.NONE)
                 textDecoration.add(decor);
         }
-        
+
         //letter spacing
         CSSProperty.LetterSpacing spacing = style.getProperty("letter-spacing");
         if (spacing != null)
@@ -364,7 +364,7 @@ public class VisualContext
                     letterSpacing = pxLength(lenspec);
             }
         }
-        
+
         //color
         TermColor clr = style.getSpecifiedValue(TermColor.class, "color");
         if (clr != null) color = CSSUnits.convertColor(clr.getValue());
@@ -682,8 +682,7 @@ public class VisualContext
                     String name = fontAvailable(((RuleFontFace.SourceLocal) src).getName(), systemFontNames);
                     if (name != null)
                     {
-                        nameFound = name;
-                        break;
+                        return name;
                     }
                 }
                 else if (src instanceof RuleFontFace.SourceURL && viewport.getConfig().isLoadFonts())
@@ -702,14 +701,14 @@ public class VisualContext
                                 try (DocumentSource imgsrc = viewport.getConfig().createDocumentSource(url)) {
                                     newFont = FontDecoder.decodeFont(imgsrc, format);
                                 }
+                                regName = newFont.getFamily();
                                 if (GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(newFont))
-                                    log.debug("Registered font: {}", newFont.getFontName());
+                                    log.debug("Registered font: {}", regName);
                                 else
-                                    log.debug("Failed to register font: {} (not fatal, probably already existing)", newFont.getFontName());
-                                regName = newFont.getFontName();
+                                    log.debug("Failed to register font: {} (not fatal, probably already existing)", regName);
                                 FontDecoder.registerFont(url, regName);
+                                return regName;
                             }
-                            nameFound = regName;
                         }
                     } catch (MalformedURLException e) {
                         log.error("Couldn't load font with URI {} ({})", ((RuleFontFace.SourceURL) src).getURI(), e.getMessage());
@@ -748,7 +747,7 @@ public class VisualContext
         
         return new Font(family, fs, size);
     }
-    
+
     public Font createFont(String family, int size, CSSProperty.FontWeight weight,
             CSSProperty.FontStyle style, double spacing)
     {
@@ -759,15 +758,15 @@ public class VisualContext
         }
         else
         {
-            // TRACKING value is multiplied by font size in AWT. 
-            // (0.75 has been empiricaly determined by comparing with other browsers) 
+            // TRACKING value is multiplied by font size in AWT.
+            // (0.75 has been empiricaly determined by comparing with other browsers)
             final double tracking = spacing / fontSize * 0.75;
             Map<TextAttribute, Object> attributes = new HashMap<TextAttribute, Object>();
             attributes.put(TextAttribute.TRACKING, tracking);
             return base.deriveFont(attributes);
         }
     }
-    
+
     /** Returns true if the font family is available.
      * @return The exact name of the font family or null if it's not available
      */
