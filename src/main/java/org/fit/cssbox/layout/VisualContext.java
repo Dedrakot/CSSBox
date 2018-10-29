@@ -707,8 +707,8 @@ public class VisualContext
                                 else
                                     log.debug("Failed to register font: {} (not fatal, probably already existing)", regName);
                                 FontDecoder.registerFont(url, regName);
-                                return regName;
                             }
+                            return regName;
                         }
                     } catch (MalformedURLException e) {
                         log.error("Couldn't load font with URI {} ({})", ((RuleFontFace.SourceURL) src).getURI(), e.getMessage());
