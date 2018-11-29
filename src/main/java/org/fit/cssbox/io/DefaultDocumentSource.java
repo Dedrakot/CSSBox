@@ -35,7 +35,7 @@ import org.fit.net.DataURLHandler;
 public class DefaultDocumentSource extends DocumentSource
 {
     /** The user-agent string used for HTTP connection */
-    private static String USER_AGENT = "Mozilla/5.0 (compatible; BoxBrowserTest/4.x; Linux) CSSBox/4.x (like Gecko)";
+    private static String USER_AGENT = "eSalesPme/1.0";
 
     private URLConnection con;
     private InputStream is;
