@@ -35,12 +35,6 @@ import org.fit.cssbox.io.DocumentSource;
  */
 public class FontDecoder
 {
-    public static List<String> supportedFormats;
-    static {
-        supportedFormats = new ArrayList<String>(1);
-        supportedFormats.add("truetype");
-    }
-    
     private static FontRegistry fontRegistry = new HashMapFontRegistry();
 
     public static void registerFont(URL url, String family)
@@ -53,7 +47,7 @@ public class FontDecoder
         return fontRegistry.findRegisteredFont(url);
     }
     
-    public static Font decodeFont(DocumentSource fontSource, String format) throws FontFormatException, IOException
+    public static Font decodeFont(DocumentSource fontSource, String format) throws Exception
     {
         return fontRegistry.decodeFont(fontSource, format);
     }
@@ -63,4 +57,7 @@ public class FontDecoder
         FontDecoder.fontRegistry = registry;
     }
 
+    public static boolean isSupported(String format) {
+        return format == null || "truetype".equals(format) ||  fontRegistry.additionalFontSupport(format);
+    }
 }
