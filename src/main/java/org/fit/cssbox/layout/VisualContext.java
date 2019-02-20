@@ -635,7 +635,6 @@ public class VisualContext
     {
         final String systemFontNames[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
         //try to look in the style font table
-        String nameFound = null;
         FontSpec spec = new FontSpec(family, weight, style);
         List<RuleFontFace.Source> srcs = findMatchingFontSources(spec);
         if (srcs != null)
@@ -656,7 +655,7 @@ public class VisualContext
                     {
                         TermURI urlstring = ((RuleFontFace.SourceURL) src).getURI();
                         String format = ((RuleFontFace.SourceURL) src).getFormat();
-                        if (format == null || FontDecoder.supportedFormats.contains(format))
+                        if (FontDecoder.isSupported(format))
                         {
                             URL url = DataURLHandler.createURL(urlstring.getBase(), urlstring.getValue());
                             String regName = FontDecoder.findRegisteredFont(url);
@@ -675,23 +674,13 @@ public class VisualContext
                             }
                             return regName;
                         }
-                    } catch (MalformedURLException e) {
+                    } catch (Exception e) {
                         log.error("Couldn't load font with URI {} ({})", ((RuleFontFace.SourceURL) src).getURI(), e.getMessage());
-                    } catch (IOException e) {
-                        log.error("Couldn't load font with URI {} ({})", ((RuleFontFace.SourceURL) src).getURI(), e.getMessage());
-                    } catch (FontFormatException e) {
-                        log.error("Couldn't decode font with URI {} ({})", ((RuleFontFace.SourceURL) src).getURI(), e.getMessage());
                     }
                 }
             }
         }
-        //if nothing found, try the system font names
-        if (nameFound == null)
-        {
-            nameFound = fontAvailable(family, systemFontNames);
-        }
-        //create the font when found
-        return nameFound;
+        return fontAvailable(family, systemFontNames);
     }
     
     private List<RuleFontFace.Source> findMatchingFontSources(FontSpec spec)

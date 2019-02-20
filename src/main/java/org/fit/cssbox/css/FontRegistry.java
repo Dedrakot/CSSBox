@@ -10,5 +10,9 @@ public interface FontRegistry {
     void registerFont(URL url, String family);
     String findRegisteredFont(URL url);
 
-    Font decodeFont(DocumentSource fontSource, String format) throws IOException, FontFormatException;
+    Font decodeFont(DocumentSource fontSource, String format) throws Exception;
+
+    default boolean additionalFontSupport(String format) {
+        return false;
+    }
 }
