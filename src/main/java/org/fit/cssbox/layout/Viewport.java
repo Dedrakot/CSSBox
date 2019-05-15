@@ -113,7 +113,7 @@ public class Viewport extends BlockBox
     {
         return width;
     }
-    
+
     /**
      * Obtains the height of the whole canvas that represents the whole rendered page.
      * @return The canvas size.
@@ -442,9 +442,9 @@ public class Viewport extends BlockBox
 	 */
 	public void updateBoundsFor(Rectangle bounds)
 	{
-		float x = bounds.x + bounds.width - 1;
+		float x = bounds.x + bounds.width;
 		if (maxx < x) maxx = x;
-		float y = bounds.y + bounds.height - 1;
+		float y = bounds.y + bounds.height;
 		if (maxy < y) maxy = y;
 	}
 	
@@ -580,7 +580,7 @@ public class Viewport extends BlockBox
         else
             return new Rectangle(0, 0, width, height);
     }
-	
+
     //===================================================================================
     
     private ElementBox recursiveFindElementBoxByName(ElementBox ebox, String name, boolean case_sensitive)
