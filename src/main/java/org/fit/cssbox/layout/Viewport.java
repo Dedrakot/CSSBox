@@ -473,9 +473,9 @@ public class Viewport extends BlockBox
 	 */
 	public void updateBoundsFor(Rectangle bounds)
 	{
-		int x = bounds.x + bounds.width - 1;
+		int x = bounds.x + bounds.width;
 		if (maxx < x) maxx = x;
-		int y = bounds.y + bounds.height - 1;
+		int y = bounds.y + bounds.height;
 		if (maxy < y) maxy = y;
 	}
 	
