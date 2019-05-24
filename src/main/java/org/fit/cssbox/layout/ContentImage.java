@@ -52,9 +52,9 @@ public abstract class ContentImage extends ReplacedContent implements ImageObser
     private static Logger log = LoggerFactory.getLogger(ContentImage.class);
     
     /** Used when there are no image data */
-    protected final int DEFAULT_IMAGE_WIDTH = 0;
+    protected static final int DEFAULT_IMAGE_WIDTH = 0;
     /** Used when there are no image data */
-    protected final int DEFAULT_IMAGE_HEIGHT = 0;
+    protected static final int DEFAULT_IMAGE_HEIGHT = 0;
     
     /** Image loading timeout [ms] */
     protected int loadTimeout;
