@@ -7,12 +7,24 @@ import org.fit.cssbox.io.DOMSource;
 import org.fit.cssbox.io.DefaultDOMSource;
 import org.fit.cssbox.io.DocumentSource;
 import org.fit.cssbox.io.StreamDocumentSource;
+import org.fit.cssbox.layout.ArcCorneredRectangle;
+import org.fit.cssbox.layout.BorderRadiusAngle;
+import org.fit.cssbox.layout.BorderRadiusSet;
 import org.fit.cssbox.layout.BrowserCanvas;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.TexturePaint;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -33,26 +45,138 @@ public class TemplateRendererTestApp {
     private boolean cropWindow;
 
 
-    public TemplateRendererTestApp(boolean loadImages, boolean loadBackgroundImages, int timeOut, boolean cropWindow) {
+    private void init(boolean loadImages, boolean loadBackgroundImages, int timeOut, boolean cropWindow) {
         this.cropWindow = cropWindow;
         this.loadImages = loadImages;
         this.loadBackgroundImages = loadBackgroundImages;
         this.timeOut = timeOut;
     }
 
-    public static void main(String[] args) throws IOException, SAXException {
-        String template = "<!DOCTYPE html>\n" +
-                "<html lang=\"en\">\n" +
-                "  <body>\n" +
-                "    <div>\n" +
-                "      <img src=\"http://www.clipartsfree.net/vector/small/J_Alves_blue_3D_rectangle_Clipart_Free.png\"/>\n" +
-                "    </div>\n" +
-                "  </body>\n" +
-                "</html>";
-        TemplateRendererTestApp generator = new TemplateRendererTestApp(true, false, 3000, false);
-        BufferedImage img = generator.generate(template, new Dimension(10, 10), null);
+    @Ignore
+    @Test
+    public void shapeOrder() throws IOException {
+        int width = 500;
+        int height = 500;
+        Shape rect = new ArcCorneredRectangle(0, 0, width, height,
+                new BorderRadiusSet(new BorderRadiusAngle(250, 250), new BorderRadiusAngle(100, 150),
+                        null, new BorderRadiusAngle(80, 60)));
 
-        ImageIO.write(img, "png", new File("tmp/img/test.png"));
+//        new BorderRadiusSet(new BorderRadiusAngle(500, 500), new BorderRadiusAngle(500, 500),
+//                new BorderRadiusAngle(500, 500), new BorderRadiusAngle(500, 500)));
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        fillShape(rect,img);
+        ImageIO.write(img, "png", new File("tmp/img/shape.png"));
+        clipShape(rect, img);
+        ImageIO.write(img, "png", new File("tmp/img/shape2.png"));
+        clipImage(rect, img);
+        ImageIO.write(img, "png", new File("tmp/img/shape3.png"));
+        textureShape(rect, img);
+        ImageIO.write(img, "png", new File("tmp/img/shape4.png"));
+    }
+
+    private void textureShape(Shape rect, BufferedImage img) throws IOException {
+        BufferedImage stars = ImageIO.read(TemplateRendererTestApp.class.getResourceAsStream("/stars.jpg"));
+        Graphics2D g = initGraphics(img);
+        clear(g);
+        TexturePaint paint = new TexturePaint(stars, new Rectangle(0, 0, img.getWidth(), img.getHeight()));
+        g.setPaint(paint);
+        g.translate(0,0);
+        g.fill(rect);
+        g.dispose();
+    }
+
+    private void clipImage(Shape rect, BufferedImage img) throws IOException {
+        BufferedImage stars = ImageIO.read(TemplateRendererTestApp.class.getResourceAsStream("/stars.jpg"));
+        Graphics2D g = initGraphics(img);
+        clear(g);
+        g.setClip(rect);
+        g.drawImage(stars, null, null);
+        g.dispose();
+    }
+
+    private void clipShape(Shape rect, BufferedImage img) {
+        Graphics2D g = initGraphics(img);
+        clear(g);
+        g.setColor(Color.GREEN);
+        g.setClip(rect);
+        g.fillRect(0, 0, img.getWidth(), img.getHeight());
+        g.dispose();
+    }
+
+    private static void clear(Graphics2D g) {
+        g.setBackground(new Color(255, 255, 255, 0));
+    }
+
+    private static void fillShape(Shape rect, BufferedImage img) {
+        Graphics2D g = initGraphics(img);
+        g.setColor(Color.ORANGE);
+        g.fill(rect);
+        g.dispose();
+    }
+
+    private static Graphics2D initGraphics(BufferedImage img) {
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        return g;
+    }
+
+    @Ignore
+    @Test
+    public void drawBorder() throws IOException, SAXException {
+        String template = "<!DOCTYPE html>"
+                          + "<html>"
+                          + "  <head> "
+                          + "    <meta charset=\"UTF-8\">"
+                          + "    <style type=\"text/css\">"
+                          + "       .bordered {"
+                          + "           border-radius: 35px 10px 60px 5px;"
+                          + "           border: 2px solid #73AD21;"
+                          + "           padding: 20px;"
+                          + "           width: 100px; "
+                          + "           height: 100px;"
+                          + "           background-color: red;"
+                          + "           overflow: hidden;"
+//                          + "           background-image: url(https://static.fjcdn.com/large/pictures/e7/1c/e71c16_5559546.jpg)"
+                          + "       }"
+                          + "    </style>"
+                          + "  </head>"
+                          + "  <body>"
+                          + "    <div class=\"bordered\">"
+                          + "      <img src=\"https://static.fjcdn.com/large/pictures/e7/1c/e71c16_5559546.jpg\"/>"
+                          + "    </div>"
+                          + "  </body>"
+                          + "</html>";
+
+        run(template, "tmp/img/border.png");
+    }
+
+    @Ignore
+    @Test
+    public void drawImage() throws IOException, SAXException {
+        String template = "<!DOCTYPE html>" +
+                "<html lang=\"en\">"
+                          + "  <head> "
+                          + "    <meta charset=\"UTF-8\">"
+                          + "    <style type=\"text/css\">"
+                          + " body { margin:0; padding: 0;} "
+                          + "    </style>"
+                          + "  </head>" +
+                "  <body>" +
+                "    <div>" +
+                "      <img src=\"https://static.fjcdn.com/large/pictures/e7/1c/e71c16_5559546.jpg\"/>" +
+                "    </div>" +
+                "  </body>" +
+                "</html>";
+
+        run(template, "tmp/img/test.png");
+    }
+
+    private void run(String template, String path) throws IOException, SAXException {
+        init(true, true, 3000, false);
+        BufferedImage img = generate(template, new Dimension(10, 10), null);
+
+        ImageIO.write(img, "png", new File(path));
     }
 
     public BufferedImage generate(String html, Dimension size, String baseUrl) throws IOException, SAXException {
