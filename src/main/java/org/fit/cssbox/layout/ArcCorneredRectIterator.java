@@ -50,22 +50,22 @@ class ArcCorneredRectIterator implements PathIterator {
                 affine.transform(coords, 0, coords, 0, 1);
             }
             cornerNum++;
-            int type = types[index];
-            if (index + 1 < types.length && types[index + 1] == SEG_CUBICTO) {
+            int type = TYPES[index];
+            if (index + 1 < TYPES.length && TYPES[index + 1] == SEG_CUBICTO) {
                 index++;
             }
             return type;
         } else {
-            double ctrls[] = ctrlpts[index];
+            double[] ctrls = ctrlpts[index];
             int nc = 0;
             for (int i = 0; i < ctrls.length; i += 4) {
-                coords[nc++] = (float) (rect.x + ctrls[i + 0] * rect.width + ctrls[i + 1] * corner.getWidth());
+                coords[nc++] = (float) (rect.x + ctrls[i] * rect.width + ctrls[i + 1] * corner.getWidth());
                 coords[nc++] = (float) (rect.y + ctrls[i + 2] * rect.height + ctrls[i + 3] * corner.getHeight());
             }
             if (affine != null) {
                 affine.transform(coords, 0, coords, 0, nc / 2);
             }
-            int type = types[index];
+            int type = TYPES[index];
             if (type != SEG_LINETO) {
                 cornerNum++;
             }
@@ -73,6 +73,7 @@ class ArcCorneredRectIterator implements PathIterator {
         }
     }
 
+    @Override
     public int currentSegment(double[] coords) {
         if (isDone()) {
             throw new NoSuchElementException("roundrect iterator out of bounds");
@@ -86,22 +87,22 @@ class ArcCorneredRectIterator implements PathIterator {
                 affine.transform(coords, 0, coords, 0, 1);
             }
             cornerNum++;
-            int type = types[index];
-            if (index + 1 < types.length && types[index + 1] == SEG_CUBICTO) {
+            int type = TYPES[index];
+            if (index + 1 < TYPES.length && TYPES[index + 1] == SEG_CUBICTO) {
                 index++;
             }
             return type;
         } else {
-            double ctrls[] = ctrlpts[index];
+            double[] ctrls = ctrlpts[index];
             int nc = 0;
             for (int i = 0; i < ctrls.length; i += 4) {
-                coords[nc++] = (rect.x + ctrls[i + 0] * rect.width + ctrls[i + 1] * corner.getWidth());
+                coords[nc++] = (rect.x + ctrls[i] * rect.width + ctrls[i + 1] * corner.getWidth());
                 coords[nc++] = (rect.y + ctrls[i + 2] * rect.height + ctrls[i + 3] * corner.getHeight());
             }
             if (affine != null) {
                 affine.transform(coords, 0, coords, 0, nc / 2);
             }
-            int type = types[index];
+            int type = TYPES[index];
             if (type != SEG_LINETO) {
                 cornerNum++;
             }
@@ -109,34 +110,34 @@ class ArcCorneredRectIterator implements PathIterator {
         }
     }
 
-    private static final double angle = Math.PI / 4.0;
-    private static final double a = 1.0 - Math.cos(angle);
-    private static final double b = Math.tan(angle);
-    private static final double c = Math.sqrt(1.0 + b * b) - 1 + a;
-    private static final double cv = 4.0 / 3.0 * a * b / c;
-    private static final double acv = (1.0 - cv) / 2.0;
+    private static final double ANGLE = Math.PI / 20;
+    private static final double A = 1.0 - Math.cos(ANGLE);
+    private static final double B = Math.tan(ANGLE);
+    private static final double C = Math.sqrt(1.0 + B * B) - 1 + A;
+    private static final double CV = 4.0 / 3.0 * A * B / C;
+    private static final double ACV = (1.0 - CV) / 2.0;
 
-    private static double ctrlpts[][] = {
-            {0.0, 0.0, 0.0, 0.5},
-            {0.0, 0.0, 1.0, -0.5},
-            {0.0, 0.0, 1.0, -acv,
-             0.0, acv, 1.0, 0.0,
-             0.0, 0.5, 1.0, 0.0},
-            {1.0, -0.5, 1.0, 0.0},
-            {1.0, -acv, 1.0, 0.0,
-             1.0, 0.0, 1.0, -acv,
-             1.0, 0.0, 1.0, -0.5},
-            {1.0, 0.0, 0.0, 0.5},
-            {1.0, 0.0, 0.0, acv,
-             1.0, -acv, 0.0, 0.0,
-             1.0, -0.5, 0.0, 0.0},
-            {0.0, 0.5, 0.0, 0.0},
-            {0.0, acv, 0.0, 0.0,
-             0.0, 0.0, 0.0, acv,
-             0.0, 0.0, 0.0, 0.5},
+    private static final double ctrlpts[][] = {
+            {0.0, 0.0, 0.0, 1.0},
+            {0.0, 0.0, 1.0, -1.0},
+            {0.0, 0.0, 1.0, -ACV,
+             0.0, ACV, 1.0, 0.0,
+             0.0, 1.0, 1.0, 0.0},
+            {1.0, -1.0, 1.0, 0.0},
+            {1.0, -ACV, 1.0, 0.0,
+             1.0, 0.0, 1.0, -ACV,
+             1.0, 0.0, 1.0, -1.0},
+            {1.0, 0.0, 0.0, 1.0},
+            {1.0, 0.0, 0.0, ACV,
+             1.0, -ACV, 0.0, 0.0,
+             1.0, -1.0, 0.0, 0.0},
+            {0.0, 1.0, 0.0, 0.0},
+            {0.0, ACV, 0.0, 0.0,
+             0.0, 0.0, 0.0, ACV,
+             0.0, 0.0, 0.0, 1.0},
             {},
             };
-    private static int types[] = {
+    private static final int TYPES[] = {
             SEG_MOVETO,
             SEG_LINETO, SEG_CUBICTO,
             SEG_LINETO, SEG_CUBICTO,
