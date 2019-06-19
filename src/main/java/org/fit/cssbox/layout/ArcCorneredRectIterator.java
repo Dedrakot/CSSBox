@@ -25,7 +25,7 @@ class ArcCorneredRectIterator implements PathIterator {
 
     @Override
     public boolean isDone() {
-        return index >= ctrlpts.length;
+        return index >= CTRLPTS.length;
     }
 
     @Override
@@ -56,7 +56,7 @@ class ArcCorneredRectIterator implements PathIterator {
             }
             return type;
         } else {
-            double[] ctrls = ctrlpts[index];
+            double[] ctrls = CTRLPTS[index];
             int nc = 0;
             for (int i = 0; i < ctrls.length; i += 4) {
                 coords[nc++] = (float) (rect.x + ctrls[i] * rect.width + ctrls[i + 1] * corner.getWidth());
@@ -93,7 +93,7 @@ class ArcCorneredRectIterator implements PathIterator {
             }
             return type;
         } else {
-            double[] ctrls = ctrlpts[index];
+            double[] ctrls = CTRLPTS[index];
             int nc = 0;
             for (int i = 0; i < ctrls.length; i += 4) {
                 coords[nc++] = (rect.x + ctrls[i] * rect.width + ctrls[i + 1] * corner.getWidth());
@@ -117,7 +117,7 @@ class ArcCorneredRectIterator implements PathIterator {
     private static final double CV = 4.0 / 3.0 * A * B / C;
     private static final double ACV = (1.0 - CV) / 2.0;
 
-    private static final double ctrlpts[][] = {
+    private static final double CTRLPTS[][] = {
             {0.0, 0.0, 0.0, 1.0},
             {0.0, 0.0, 1.0, -1.0},
             {0.0, 0.0, 1.0, -ACV,
@@ -137,7 +137,7 @@ class ArcCorneredRectIterator implements PathIterator {
              0.0, 0.0, 0.0, 1.0},
             {},
             };
-    private static final int TYPES[] = {
+    private static final int[] TYPES = {
             SEG_MOVETO,
             SEG_LINETO, SEG_CUBICTO,
             SEG_LINETO, SEG_CUBICTO,
