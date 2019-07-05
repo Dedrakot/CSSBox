@@ -21,7 +21,6 @@ import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.TexturePaint;
@@ -58,18 +57,18 @@ public class TemplateRendererTestApp {
         int width = 500;
         int height = 500;
         Shape rect = new ArcCorneredRectangle(0, 0, width, height,
-                new BorderRadiusSet(new BorderRadiusAngle(250, 250), new BorderRadiusAngle(100, 150),
-                        null, new BorderRadiusAngle(80, 60)));
+//                new BorderRadiusSet(new BorderRadiusAngle(250, 250), new BorderRadiusAngle(100, 150),
+//                        null, new BorderRadiusAngle(80, 60)));
 
-//        new BorderRadiusSet(new BorderRadiusAngle(500, 500), new BorderRadiusAngle(500, 500),
-//                new BorderRadiusAngle(500, 500), new BorderRadiusAngle(500, 500)));
+        new BorderRadiusSet(new BorderRadiusAngle(500, 500), new BorderRadiusAngle(500, 500),
+                new BorderRadiusAngle(500, 500), new BorderRadiusAngle(500, 500)));
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         fillShape(rect,img);
         ImageIO.write(img, "png", new File("tmp/img/shape.png"));
-        clipShape(rect, img);
-        ImageIO.write(img, "png", new File("tmp/img/shape2.png"));
-        clipImage(rect, img);
-        ImageIO.write(img, "png", new File("tmp/img/shape3.png"));
+//        clipShape(rect, img);
+//        ImageIO.write(img, "png", new File("tmp/img/shape2.png"));
+//        clipImage(rect, img);
+//        ImageIO.write(img, "png", new File("tmp/img/shape3.png"));
         textureShape(rect, img);
         ImageIO.write(img, "png", new File("tmp/img/shape4.png"));
     }
@@ -78,9 +77,8 @@ public class TemplateRendererTestApp {
         BufferedImage stars = ImageIO.read(TemplateRendererTestApp.class.getResourceAsStream("/stars.jpg"));
         Graphics2D g = initGraphics(img);
         clear(g);
-        TexturePaint paint = new TexturePaint(stars, new Rectangle(0, 0, img.getWidth(), img.getHeight()));
+        TexturePaint paint = new TexturePaint(stars, rect.getBounds2D());
         g.setPaint(paint);
-        g.translate(0,0);
         g.fill(rect);
         g.dispose();
     }
@@ -130,20 +128,20 @@ public class TemplateRendererTestApp {
                           + "    <meta charset=\"UTF-8\">"
                           + "    <style type=\"text/css\">"
                           + "       .bordered {"
-                          + "           border-radius: 35px 10px 60px 5px;"
+//                          + "           border-radius: 35px 10px 60px 5px;"
                           + "           border: 2px solid #73AD21;"
                           + "           padding: 20px;"
                           + "           width: 100px; "
                           + "           height: 100px;"
-                          + "           background-color: red;"
+//                          + "           background-color: red;"
                           + "           overflow: hidden;"
-//                          + "           background-image: url(https://static.fjcdn.com/large/pictures/e7/1c/e71c16_5559546.jpg)"
+                          + "           background-image: url(http://pngimg.com/uploads/scratches/scratches_PNG6173.png);"
                           + "       }"
                           + "    </style>"
                           + "  </head>"
                           + "  <body>"
                           + "    <div class=\"bordered\">"
-                          + "      <img src=\"https://static.fjcdn.com/large/pictures/e7/1c/e71c16_5559546.jpg\"/>"
+//                          + "      <img src=\"https://static.fjcdn.com/large/pictures/e7/1c/e71c16_5559546.jpg\"/>"
                           + "    </div>"
                           + "  </body>"
                           + "</html>";

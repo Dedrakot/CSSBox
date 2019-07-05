@@ -20,6 +20,9 @@
 
 package org.fit.cssbox.layout;
 
+import java.awt.geom.RectangularShape;
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -28,11 +31,14 @@ import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 
+import javax.imageio.ImageIO;
+
 import cz.vutbr.web.css.*;
 import cz.vutbr.web.css.CSSProperty.BackgroundAttachment;
 import cz.vutbr.web.css.CSSProperty.BackgroundRepeat;
 import cz.vutbr.web.css.CSSProperty.BackgroundSize;
 import cz.vutbr.web.css.CSSProperty.ZIndex;
+import cz.vutbr.web.csskit.TermListImpl;
 
 import org.fit.cssbox.css.CSSUnits;
 import org.fit.cssbox.misc.CSSStroke;
@@ -165,6 +171,7 @@ abstract public class ElementBox extends Box
     
     /** Padding widths */
     protected LengthSet border;
+    protected BorderRadiusSet borderRadius;
     
     /** Border widths */
     protected LengthSet padding;
@@ -1108,39 +1115,95 @@ abstract public class ElementBox extends Box
     {
         Color color = g.getColor(); //original color
         Shape oldclip = g.getClip(); //original clip region
-        if (clipblock != null)
+        if (clipblock != null) {
             g.setClip(applyClip(oldclip, clipblock.getClippedContentBounds()));
+        }
         ctx.updateGraphics(g);
-        
-        //border bounds
-        Rectangle brd = getAbsoluteBorderBounds();
-        
-        //draw the background - it should be visible below the border too
-        if (getBgcolor() != null)
-        {
-            g.setColor(getBgcolor());
-            g.fillRect(brd.x, brd.y, brd.width, brd.height);
-        }
-        
-        //draw the background images
-        if (bgimages != null)
-        {
-            Rectangle bg = getAbsoluteBackgroundBounds();
-            for (BackgroundImage img : bgimages)
-            {
-                BufferedImage bimg = img.getBufferedImage();
-                if (bimg != null)
-                    g.drawImage(bimg, bg.x, bg.y, null);
+
+        if(borderRadius !=null) {
+            // TODO: this is an example only, all options not checked, for example, probalby oldPaint not required
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if(bgimages!=null || getBgcolor()!=null) {
+                Rectangle bg = getAbsoluteBackgroundBounds();
+                ArcCorneredRectangle rect = new ArcCorneredRectangle(bg, borderRadius);
+                if (bgimages != null) {
+                    Paint oldPaint = g.getPaint();
+                    for (BackgroundImage img : bgimages) {
+                        BufferedImage bimg = img.getBufferedImage();
+                        if (bimg != null) {
+                            textureShape(rect, bimg);
+                        }
+                    }
+                    g.setPaint(oldPaint);
+                } else if (getBgcolor() != null) {
+                    g.setColor(getBgcolor());
+                    g.fill(rect);
+                }
             }
+
+            // TODO: draw borders, some changes in shape and/or shape iterator required
+        } else {
+
+            //border bounds
+            Rectangle brd = getAbsoluteBorderBounds();
+
+            //draw the background - it should be visible below the border too
+            if (getBgcolor() != null) {
+                g.setColor(getBgcolor());
+                g.fillRect(brd.x, brd.y, brd.width, brd.height);
+            }
+
+            //draw the background images
+            if (bgimages != null) {
+                Rectangle bg = getAbsoluteBackgroundBounds();
+                for (BackgroundImage img : bgimages) {
+                    BufferedImage bimg = img.getBufferedImage();
+                    if (bimg != null) {
+                        try {
+                            ImageIO.write(bimg, "png", new File("tmp/img/test.png"));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        g.drawImage(bimg, bg.x, bg.y, null);
+                    }
+                }
+            }
+
+            //draw the border
+            drawBorders(g, brd.x, brd.y, brd.x + brd.width - 1, brd.y + brd.height - 1);
         }
-        
-        //draw the border
-        drawBorders(g, brd.x, brd.y, brd.x + brd.width - 1, brd.y + brd.height - 1);
         
         g.setClip(oldclip); //restore the clipping
         g.setColor(color); //restore original color
     }
-    
+
+    private void textureShape(RectangularShape rect, BufferedImage img) {
+        TexturePaint paint = new TexturePaint(img, rect.getBounds2D());
+        g.setPaint(paint);
+        g.fill(rect);
+    }
+
+    private BorderRadiusSet getBorderRadius(CSSDecoder dec, int contw) {
+        BorderRadiusAngle topLeft = getCornerAngle("border-top-left-radius", dec, contw);
+        BorderRadiusAngle topRight = getCornerAngle("border-top-right-radius", dec, contw);
+        BorderRadiusAngle bottomLeft = getCornerAngle("border-bottom-left-radius", dec, contw);
+        BorderRadiusAngle bottomRight = getCornerAngle("border-bottom-right-radius", dec, contw);
+        return topLeft != null || topRight != null || bottomLeft != null || bottomRight != null ?
+               new BorderRadiusSet(topLeft, topRight, bottomLeft, bottomRight) : null;
+    }
+
+    private BorderRadiusAngle getCornerAngle(String name, CSSDecoder dec, int contw) {
+        TermListImpl borderRadiuses = (TermListImpl) style.getValue(name, true);
+        if (borderRadiuses != null) {
+            TermLengthOrPercent horizontal = (TermLengthOrPercent) borderRadiuses.get(0);
+            TermLengthOrPercent vertical = (TermLengthOrPercent) borderRadiuses.get(1);
+            VisualContext context = dec.getContext();
+            BorderRadiusAngle ret = new BorderRadiusAngle(context.pxLength(horizontal, contw), context.pxLength(vertical, contw));
+            return (int) ret.vertical < 1 || (int) ret.horizontal < 1 ? null : ret;
+        }
+        return null;
+    }
+
     protected void drawBorders(Graphics2D g, int bx1, int by1, int bx2, int by2)
     {
         if (border.top > 0 && bx2 > bx1)
@@ -1170,6 +1233,7 @@ abstract public class ElementBox extends Box
                 if (clr == null)
                     clr = Color.BLACK;
             }
+
             g.setColor(clr);
             g.setStroke(new CSSStroke(width, bst, reverse));
             g.draw(new Line2D.Double(x1 + right, y1 + down, x2 + right, y2 + down));
@@ -1347,6 +1411,7 @@ abstract public class ElementBox extends Box
             border.left = getBorderWidth(dec, "border-left-width");
         else
             border.left = 0;
+        borderRadius = getBorderRadius(dec, contw);
     }
     
     /**

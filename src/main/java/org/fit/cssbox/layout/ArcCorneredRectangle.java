@@ -1,5 +1,6 @@
 package org.fit.cssbox.layout;
 
+import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
@@ -7,10 +8,10 @@ import java.awt.geom.RectangularShape;
 
 public class ArcCorneredRectangle extends RectangularShape {
 
-    Corner topLeft;
-    Corner topRight;
-    Corner bottomLeft;
-    Corner bottomRight;
+    private final Corner topLeft;
+    private final Corner topRight;
+    private final Corner bottomLeft;
+    private final Corner bottomRight;
 
     double x;
     double y;
@@ -28,6 +29,11 @@ public class ArcCorneredRectangle extends RectangularShape {
         this.topRight = createCorner(borderRadiusSet.topRight, CornerAccessor.TOP_RIGHT);
         this.bottomLeft = createCorner(borderRadiusSet.bottomLeft, CornerAccessor.BOTTOM_LEFT);
         this.bottomRight = createCorner(borderRadiusSet.bottomRight, CornerAccessor.BOTTOM_RIGHT);
+    }
+
+    public ArcCorneredRectangle(Rectangle rect,
+                                BorderRadiusSet borderRadiusSet) {
+        this(rect.x, rect.y, rect.width, rect.height, borderRadiusSet);
     }
 
     @Override
