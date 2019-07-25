@@ -1848,6 +1848,15 @@ public class BlockBox extends ElementBox
             return super.getClippedContentBounds().intersection(cr);
     }
 
+    public void addLayerBoundsClip(Graphics2D g) {
+        if (borderRadius != null)
+            g.clip(new ArcCorneredRectangle(getAbsolutePaddingBounds(), borderRadius));
+        else
+            g.clip(getAbsolutePaddingBounds());
+        if (clipblock != null)
+            clipblock.addLayerBoundsClip(g);
+    }
+
     /**
      * Computes the absolute coordinates of the clipping rectangle specified using the <code>clip:</code> property.
      * @return The absolute coordinates of the clipping rectangle or <code>null</code> when no clipping is applied.

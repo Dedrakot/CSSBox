@@ -128,24 +128,49 @@ public class TemplateRendererTestApp {
                           + "    <meta charset=\"UTF-8\">"
                           + "    <style type=\"text/css\">"
                           + "       .bordered {"
-//                          + "           border-radius: 35px 10px 60px 5px;"
-                          + "           border: 2px solid #73AD21;"
-                          + "           padding: 20px;"
-                          + "           width: 100px; "
-                          + "           height: 100px;"
-//                          + "           background-color: red;"
+                          + "           border-radius: 600px 600px 600px 600px;"
+                          + "           border: 10px solid #73AD21;"
+                          + "           width: 1200px;"
+                          + "           height: 1200px;"
                           + "           overflow: hidden;"
-                          + "           background-image: url(http://pngimg.com/uploads/scratches/scratches_PNG6173.png);"
-                          + "       }"
+                          + "        background-image: url(https://st2.depositphotos.com/2250525/7151/i/950/depositphotos_71511671-stock-photo-lead-by-example.jpg);"
+                          + "       } "
+                          + " .bordered2 {"
+                          + "        border-radius: 99px 322px 60px 33px;"
+                          + "        border: 10px solid #FFAD21;"
+                          + "        margin-left: 300px;"
+                          + "        width: 900px;"
+                          + "        height: 700px;"
+                          + "        overflow: hidden;"
+                          + "        background-image: url(http://nerabotaetsite.ru/wp-content/uploads/2016/05/yandex-kartinki.jpg);"
+                          + "      }"
+                          + " .bordered3 {"
+                          + "        border-radius: 99px 250px 60px 33px;"
+                          + "        border: 10px solid #00AD21;"
+                          + "        margin-left: 250px;"
+                          + "        width: 700px;"
+                          + "        height: 200px;"
+                          + "        overflow: hidden;"
+                          + "        background-color: red;"
+                          + "        background-image: url(http://nerabotaetsite.ru/wp-content/uploads/2016/05/yandex-kartinki.jpg);"
+                          + "      };"
                           + "    </style>"
                           + "  </head>"
                           + "  <body>"
                           + "    <div class=\"bordered\">"
-//                          + "      <img src=\"https://static.fjcdn.com/large/pictures/e7/1c/e71c16_5559546.jpg\"/>"
+                          + "    <div style=\"font-size: 70pt; color: red; text-decoration: underline;\">"
+                          + "       What was going on here"
+                          + "    </div>"
+                          + "    <div class=\"bordered2\">"
+                          + "       Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s"
+                          + "    <div class=\"bordered3\">"
+                          + "               Contrary to popular belief, Lorem Ipsum is not simply random text. "
+                          + "    </div>"
+                          + "    </div>"
+                          + "  <img src=\"https://m-ua.info/wp-content/uploads/2017/12/color.jpg\"/>"
                           + "    </div>"
                           + "  </body>"
                           + "</html>";
-
         run(template, "tmp/img/border.png");
     }
 
@@ -200,6 +225,7 @@ public class TemplateRendererTestApp {
             da.addStyleSheet(null, CSSNorm.stdStyleSheet(), DOMAnalyzer.Origin.AGENT); //use the standard style sheet
 //            da.addStyleSheet(null, CSSNorm.userStyleSheet(), DOMAnalyzer.Origin.AGENT); //use the additional style sheet
 //            da.addStyleSheet(null, CSSNorm.formsStyleSheet(), DOMAnalyzer.Origin.AGENT); //render form fields using css
+            da.addStyleSheet(null, "body {position:absolute;}", DOMAnalyzer.Origin.AGENT);
             da.getStyleSheets(); //load the author style sheets
 
             BrowserCanvas contentCanvas = new BrowserCanvas(da.getRoot(), da, base);

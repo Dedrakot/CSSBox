@@ -196,7 +196,7 @@ public class ListItemBox extends BlockBox
     {
         Shape oldclip = g.getClip();
         if (clipblock != null)
-            g.setClip(applyClip(oldclip, clipblock.getClippedContentBounds()));
+            clipblock.addLayerBoundsClip(g);
         
         if (image != null)
         {
