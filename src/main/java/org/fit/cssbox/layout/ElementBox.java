@@ -91,8 +91,8 @@ abstract public class ElementBox extends Box
     /** Default line height if nothing or 'normal' is specified */
     private static final float DEFAULT_LINE_HEIGHT = 1.12f;
 
-    /** Addition to the corner to remove the gap */
-    private static final double ANTI_ALIASING_ANGLE_ADDING = 6.0;
+    /** Width border multiplier to get angle correction value */
+    private static final double CORRECTION_GAP_MULTIPLIER = 0.52625;
 
     /** Assigned element */
     protected Element el;
@@ -1122,7 +1122,6 @@ abstract public class ElementBox extends Box
         ctx.updateGraphics(g);
 
         if (borderRadius != null) {
-            // TODO: this is an example only, all options not checked, for example, probalby oldPaint not required
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             if (bgimages != null || getBgcolor() != null) {
                 Rectangle bg = getAbsoluteBackgroundBounds();
@@ -1132,13 +1131,13 @@ abstract public class ElementBox extends Box
                     for (BackgroundImage img : bgimages) {
                         BufferedImage bimg = img.getBufferedImage();
                         if (bimg != null) {
-                            TexturePaint paint = new TexturePaint(bimg, rect.getBounds2D());
+                            TexturePaint paint = new TexturePaint(bimg, bg);
                             g.setPaint(paint);
                             g.fill(rect);
                         }
                     }
                     g.setPaint(oldPaint);
-                } else if (getBgcolor() != null) {
+                } else {
                     g.setColor(getBgcolor());
                     g.fill(rect);
                 }
@@ -1193,12 +1192,13 @@ abstract public class ElementBox extends Box
                     clr = Color.BLACK;
             }
             g.setColor(clr);
-            g.setStroke(new CSSStroke(border.top, bst, false));
+            g.setStroke(new BasicStroke(border.top, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
+            double correctionAngleGapValue = border.top * CORRECTION_GAP_MULTIPLIER;
             BorderRadiusSet antiAliasingBorderRadius = new BorderRadiusSet(
-                                copyAndModifyAngle(borderRadius.topLeft),
-                                copyAndModifyAngle(borderRadius.topRight),
-                                copyAndModifyAngle(borderRadius.bottomLeft),
-                                copyAndModifyAngle(borderRadius.bottomRight));
+                                copyAndModifyAngle(borderRadius.topLeft, correctionAngleGapValue),
+                                copyAndModifyAngle(borderRadius.topRight, correctionAngleGapValue),
+                                copyAndModifyAngle(borderRadius.bottomLeft, correctionAngleGapValue),
+                                copyAndModifyAngle(borderRadius.bottomRight, correctionAngleGapValue));
             g.draw(new ArcCorneredRectangle(new Rectangle(absbounds.x + emargin.left + border.left / 2,
                     absbounds.y + emargin.top + border.top / 2,
                     content.width + padding.left + padding.right + border.left,
@@ -1206,9 +1206,9 @@ abstract public class ElementBox extends Box
         }
     }
 
-    private BorderRadiusAngle copyAndModifyAngle(BorderRadiusAngle angle) {
+    private BorderRadiusAngle copyAndModifyAngle(BorderRadiusAngle angle, double correctionAngleGapValue) {
         if (angle != null)
-            return new BorderRadiusAngle(angle.horizontal + ANTI_ALIASING_ANGLE_ADDING, angle.vertical + ANTI_ALIASING_ANGLE_ADDING);
+            return new BorderRadiusAngle(angle.horizontal + correctionAngleGapValue, angle.vertical + correctionAngleGapValue);
         return null;
     }
 
