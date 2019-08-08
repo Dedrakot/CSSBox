@@ -52,7 +52,10 @@ public interface BoxRenderer
      * @param elem
      */
     public void renderElementBackground(ElementBox elem);
-    
+
+
+    public void renderElementSpecialBorder(ElementBox elem);
+
     /**
      * Renders the marker (the bullet or item number) used by the list-item boxes.
      * @param elem the list-item box

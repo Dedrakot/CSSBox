@@ -36,6 +36,8 @@ import cz.vutbr.web.css.*;
 import cz.vutbr.web.css.CSSProperty.BackgroundAttachment;
 import cz.vutbr.web.css.CSSProperty.BackgroundRepeat;
 import cz.vutbr.web.css.CSSProperty.BackgroundSize;
+import cz.vutbr.web.css.CSSProperty.BorderStyle;
+import cz.vutbr.web.css.CSSProperty.Overflow;
 import cz.vutbr.web.css.CSSProperty.ZIndex;
 import cz.vutbr.web.csskit.TermListImpl;
 
@@ -952,6 +954,19 @@ abstract public class ElementBox extends Box
                              content.width + padding.left + padding.right + border.left + border.right,
                              content.height + padding.top + padding.bottom + border.top + border.bottom);
     }
+
+    /**
+     * Returns the bounds of the border edge (the content, padding and border)
+     * @return a Rectangle representing the absolute border bounds with only one type of border
+     * (because with ArcCorneredRectangle we can use only one size border)
+     */
+    public Rectangle getAbsoluteSingleSizeBorderBounds()
+    {
+        return new Rectangle(absbounds.x + emargin.left,
+                absbounds.y + emargin.top,
+                content.width + padding.left + padding.right + border.top * 2,
+                content.height + padding.top + padding.bottom + border.top * 2);
+    }
     
     /**
      * Returns the bounds of the background according to the background-origin property.
@@ -1123,9 +1138,9 @@ abstract public class ElementBox extends Box
 
         if (borderRadius != null) {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            Rectangle bg = getAbsoluteSingleSizeBorderBounds();
+            ArcCorneredRectangle shape = new ArcCorneredRectangle(bg, borderRadius);
             if (bgimages != null || getBgcolor() != null) {
-                Rectangle bg = getAbsoluteBackgroundBounds();
-                ArcCorneredRectangle rect = new ArcCorneredRectangle(bg, borderRadius);
                 if (bgimages != null) {
                     Paint oldPaint = g.getPaint();
                     for (BackgroundImage img : bgimages) {
@@ -1133,16 +1148,19 @@ abstract public class ElementBox extends Box
                         if (bimg != null) {
                             TexturePaint paint = new TexturePaint(bimg, bg);
                             g.setPaint(paint);
-                            g.fill(rect);
+                            g.fill(shape);
                         }
                     }
                     g.setPaint(oldPaint);
                 } else {
                     g.setColor(getBgcolor());
-                    g.fill(rect);
+                    g.fill(shape);
                 }
             }
-            drawBorderRadiusBorder(g);
+            BlockBox blockBox = (BlockBox) this;
+            if (!Overflow.HIDDEN.equals(blockBox.getOverflowX()) && !Overflow.HIDDEN.equals(blockBox.getOverflowY())) {
+                drawBorderRadiusBorder(g, shape);
+            }
         } else {
 
             //border bounds
@@ -1178,11 +1196,17 @@ abstract public class ElementBox extends Box
         g.setColor(color); //restore original color
     }
 
-    private void drawBorderRadiusBorder(Graphics2D g)
+    public void drawSpecialBorder(Graphics2D g) {
+        if (borderRadius != null)
+            drawBorderRadiusBorder(g, new ArcCorneredRectangle(getAbsoluteSingleSizeBorderBounds(), borderRadius));
+    }
+
+    public void drawBorderRadiusBorder(Graphics2D g, ArcCorneredRectangle shape)
     {
         TermColor tclr = style.getSpecifiedValue(TermColor.class, "border-top-color");
         CSSProperty.BorderStyle bst = style.getProperty("border-top-style");
-        if (bst != CSSProperty.BorderStyle.HIDDEN && (tclr == null || !tclr.isTransparent())) {
+        if (bst != CSSProperty.BorderStyle.HIDDEN && (tclr == null || !tclr.isTransparent()))
+        {
             Color clr = null;
             if (tclr != null)
                 clr = CSSUnits.convertColor(tclr.getValue());
@@ -1192,24 +1216,17 @@ abstract public class ElementBox extends Box
                     clr = Color.BLACK;
             }
             g.setColor(clr);
-            g.setStroke(new BasicStroke(border.top, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
-            double correctionAngleGapValue = border.top * CORRECTION_GAP_MULTIPLIER;
-            BorderRadiusSet antiAliasingBorderRadius = new BorderRadiusSet(
-                                copyAndModifyAngle(borderRadius.topLeft, correctionAngleGapValue),
-                                copyAndModifyAngle(borderRadius.topRight, correctionAngleGapValue),
-                                copyAndModifyAngle(borderRadius.bottomLeft, correctionAngleGapValue),
-                                copyAndModifyAngle(borderRadius.bottomRight, correctionAngleGapValue));
-            g.draw(new ArcCorneredRectangle(new Rectangle(absbounds.x + emargin.left + border.left / 2,
-                    absbounds.y + emargin.top + border.top / 2,
-                    content.width + padding.left + padding.right + border.left,
-                    content.height + padding.top + padding.bottom + border.top), antiAliasingBorderRadius));
+            if (BorderStyle.DASHED.name().equals(bst.name()))
+                g.setStroke(new BasicStroke(border.top * 2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1,  new float[]{border.top, border.top} ,0));
+            else
+                g.setStroke(new BasicStroke(border.top * 2));
+            Shape oldClip = g.getClip();
+            if (clipblock != null)
+                clipblock.addLayerBoundsClip(g);
+            g.clip(shape);
+            g.draw(shape);
+            g.setClip(oldClip);
         }
-    }
-
-    private BorderRadiusAngle copyAndModifyAngle(BorderRadiusAngle angle, double correctionAngleGapValue) {
-        if (angle != null)
-            return new BorderRadiusAngle(angle.horizontal + correctionAngleGapValue, angle.vertical + correctionAngleGapValue);
-        return null;
     }
 
     private BorderRadiusSet getBorderRadius(CSSDecoder dec, int contw) {
