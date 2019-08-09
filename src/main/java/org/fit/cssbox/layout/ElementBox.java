@@ -1203,6 +1203,9 @@ abstract public class ElementBox extends Box
 
     public void drawBorderRadiusBorder(Graphics2D g, ArcCorneredRectangle shape)
     {
+        if (border.top == 0) {
+            return;
+        }
         TermColor tclr = style.getSpecifiedValue(TermColor.class, "border-top-color");
         CSSProperty.BorderStyle bst = style.getProperty("border-top-style");
         if (bst != CSSProperty.BorderStyle.HIDDEN && (tclr == null || !tclr.isTransparent()))
@@ -1216,7 +1219,7 @@ abstract public class ElementBox extends Box
                     clr = Color.BLACK;
             }
             g.setColor(clr);
-            if (BorderStyle.DASHED.name().equals(bst.name()))
+            if (BorderStyle.DASHED == bst)
                 g.setStroke(new BasicStroke(border.top * 2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1,  new float[]{border.top, border.top} ,0));
             else
                 g.setStroke(new BasicStroke(border.top * 2));
