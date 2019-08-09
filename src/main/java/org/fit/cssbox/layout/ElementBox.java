@@ -958,7 +958,7 @@ abstract public class ElementBox extends Box
     /**
      * Returns the bounds of the border edge (the content, padding and border)
      * @return a Rectangle representing the absolute border bounds with only one type of border
-     * (because with ArcCorneredRectangle we can use only one size border)
+     * (because now boxes with border-radius support only one size border(choose border.top))
      */
     public Rectangle getAbsoluteSingleSizeBorderBounds()
     {
@@ -1196,7 +1196,7 @@ abstract public class ElementBox extends Box
         g.setColor(color); //restore original color
     }
 
-    public void drawSpecialBorder(Graphics2D g) {
+    public void drawBorder(Graphics2D g) {
         if (borderRadius != null)
             drawBorderRadiusBorder(g, new ArcCorneredRectangle(getAbsoluteSingleSizeBorderBounds(), borderRadius));
     }

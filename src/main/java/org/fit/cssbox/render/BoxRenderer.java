@@ -54,7 +54,12 @@ public interface BoxRenderer
     public void renderElementBackground(ElementBox elem);
 
 
-    public void renderElementSpecialBorder(ElementBox elem);
+    /**
+     * Draws a border when we do not draw it when processing the background in some cases,
+     * due to the special implementation of the border when we have box with border-radius.
+     * @param elem
+     */
+    public void renderElementBorder(ElementBox elem);
 
     /**
      * Renders the marker (the bullet or item number) used by the list-item boxes.

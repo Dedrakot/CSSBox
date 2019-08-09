@@ -151,7 +151,7 @@ public class SVGRenderer implements BoxRenderer
     }
 
     @Override
-    public void renderElementSpecialBorder(ElementBox elem) {
+    public void renderElementBorder(ElementBox elem) {
     }
 
     @Override
