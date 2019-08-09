@@ -1178,11 +1178,6 @@ abstract public class ElementBox extends Box
                 for (BackgroundImage img : bgimages) {
                     BufferedImage bimg = img.getBufferedImage();
                     if (bimg != null) {
-                        try {
-                            ImageIO.write(bimg, "png", new File("tmp/img/test.png"));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
                         g.drawImage(bimg, bg.x, bg.y, null);
                     }
                 }
