@@ -1140,22 +1140,20 @@ abstract public class ElementBox extends Box
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             Rectangle bg = getAbsoluteSingleSizeBorderBounds();
             ArcCorneredRectangle shape = new ArcCorneredRectangle(bg, borderRadius);
-            if (bgimages != null || getBgcolor() != null) {
-                if (bgimages != null) {
-                    Paint oldPaint = g.getPaint();
-                    for (BackgroundImage img : bgimages) {
-                        BufferedImage bimg = img.getBufferedImage();
-                        if (bimg != null) {
-                            TexturePaint paint = new TexturePaint(bimg, bg);
-                            g.setPaint(paint);
-                            g.fill(shape);
-                        }
+            g.clip(shape);
+            if (bgimages != null) {
+                Paint oldPaint = g.getPaint();
+                for (BackgroundImage img : bgimages) {
+                    BufferedImage bimg = img.getBufferedImage();
+                    if (bimg != null) {
+                        g.setPaint(new TexturePaint(bimg, bg));
+                        g.fill(shape);
                     }
-                    g.setPaint(oldPaint);
-                } else {
-                    g.setColor(getBgcolor());
-                    g.fill(shape);
                 }
+                g.setPaint(oldPaint);
+            } else if (getBgcolor() != null) {
+                g.setColor(getBgcolor());
+                g.fill(shape);
             }
             BlockBox blockBox = (BlockBox) this;
             if (!Overflow.HIDDEN.equals(blockBox.getOverflowX()) && !Overflow.HIDDEN.equals(blockBox.getOverflowY())) {
@@ -1215,7 +1213,7 @@ abstract public class ElementBox extends Box
             }
             g.setColor(clr);
             if (BorderStyle.DASHED == bst)
-                g.setStroke(new BasicStroke(border.top * 2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1,  new float[]{border.top, border.top} ,0));
+                g.setStroke(new BasicStroke(border.top * 2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1,  new float[]{border.top*2, border.top} ,0));
             else
                 g.setStroke(new BasicStroke(border.top * 2));
             Shape oldClip = g.getClip();

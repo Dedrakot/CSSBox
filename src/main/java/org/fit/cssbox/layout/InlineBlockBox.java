@@ -353,6 +353,7 @@ public class InlineBlockBox extends BlockBox implements InlineElement
                         if (isVisible())
                             getViewport().getRenderer().renderElementBackground(this);
                         drawStackingContext(true);
+                        drawBorders();
                         break;
                 }
             }

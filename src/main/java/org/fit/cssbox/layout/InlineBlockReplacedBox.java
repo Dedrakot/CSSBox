@@ -242,6 +242,7 @@ public class InlineBlockReplacedBox extends InlineBlockBox implements ReplacedBo
                         break;
                     case DRAW_INLINE:
                         getViewport().getRenderer().renderElementBackground(this);
+                        drawBorders();
                         getViewport().getRenderer().startElementContents(this);
                         getViewport().getRenderer().renderReplacedContent(this);
                         getViewport().getRenderer().finishElementContents(this);

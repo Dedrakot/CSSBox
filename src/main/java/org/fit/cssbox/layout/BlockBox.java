@@ -1820,7 +1820,7 @@ public class BlockBox extends ElementBox
         }
     }
 
-    private void drawBorders() {
+    protected void drawBorders() {
         if (Overflow.HIDDEN.equals(getOverflowX()) || Overflow.HIDDEN.equals(getOverflowY())) {
             getViewport().getRenderer().renderElementBorder(this);
         }

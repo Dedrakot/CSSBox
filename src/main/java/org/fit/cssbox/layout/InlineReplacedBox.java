@@ -216,6 +216,7 @@ public class InlineReplacedBox extends InlineBox implements ReplacedBox
                         getViewport().getRenderer().startElementContents(this);
                         getViewport().getRenderer().renderReplacedContent(this);
                         getViewport().getRenderer().finishElementContents(this);
+                        drawBorders();
                         break;
                 }
             }

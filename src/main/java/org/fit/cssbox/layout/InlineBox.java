@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
 
 import cz.vutbr.web.css.*;
+import cz.vutbr.web.css.CSSProperty.Overflow;
 
 /**
  * An inline element box.
@@ -611,11 +612,16 @@ public class InlineBox extends ElementBox implements InlineElement
                             getViewport().getRenderer().startElementContents(this);
                             drawChildren(turn);
                             getViewport().getRenderer().finishElementContents(this);
+                            drawBorders();
                         }
                         break;
                 }
             }
         }
+    }
+
+    protected void drawBorders() {
+        getViewport().getRenderer().renderElementBorder(this);
     }
     
     @Override

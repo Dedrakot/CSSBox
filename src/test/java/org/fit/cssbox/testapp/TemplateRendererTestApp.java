@@ -18,12 +18,7 @@ import org.xml.sax.SAXException;
 
 import javax.imageio.ImageIO;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.TexturePaint;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -121,19 +116,57 @@ public class TemplateRendererTestApp {
 
     @Ignore
     @Test
-    public void drawBorder() throws IOException, SAXException {
+    public void drawBorderedInlineBlocks() throws IOException, SAXException {
         String template = "<!DOCTYPE html>"
                           + "<html>"
                           + "  <head> "
                           + "    <meta charset=\"UTF-8\">"
                           + "    <style type=\"text/css\">"
                           + "       .bordered {"
+                          + "           border-radius: 50px;"
+                          + "           border: 39px solid #00FF00;"
+                          + "           width: 500px;"
+                          + "           height: 500px;"
+                          + "        background-color: red;"
+                          + "       overflow: hidden"
+                          + "       }"
+                          + ".bordered li {"
+                          + "  display: inline-block;"
+                          + "  border-radius: 15px;"
+                          + "  border: 10px solid #00FFFF;"
+                          + "  font-size: 20px;"
+                          + "  padding: 5px;"
+                          + "};"
+                          + "    </style>"
+                          + "  </head>"
+                          + "  <body>"
+                          + "    <div class=\"bordered\">"
+                          + "  <img src=\"https://ladyelena.ru/wp-content/uploads/2014/01/k-chemu-snitsya-mysh-malenkaya-2.jpg\"/>"
+                          + "  <li><a href=\"#home\">Home</a></li>"
+                          + "  <li><a href=\"#about\">About Us</a></li>"
+                          + "  <li><a href=\"#clients\">Our Clients</a></li>"
+                          + "  <li><a href=\"#contact\">Contact Us</a></li>"
+                          + "    </div>"
+                          + "  </body>"
+                          + "</html>";
+        run(template, "tmp/img/borderedInlineBlocks.png");
+    }
+
+    @Ignore
+    @Test
+    public void drawBorder() throws IOException, SAXException {
+        String template = "<!DOCTYPE html>"
+                          + "<html>"
+                          + "  <head> "
+                          + "    <meta charset=\"UTF-8\">"
+                          + "    <style type=\"text/css\">"
+                          + " .bordered {"
                           + "           border-radius: 600px 600px 600px 600px;"
                           + "           border: 20px dashed #73AD21;"
                           + "           width: 1200px;"
                           + "           height: 1200px;"
                           + "           background-size: 100px 100px;"
-                          + "        background-image: url(https://ladyelena.ru/wp-content/uploads/2014/01/k-chemu-snitsya-mysh-malenkaya-2.jpg);"
+                          + "           background-image: url(https://ladyelena.ru/wp-content/uploads/2014/01/k-chemu-snitsya-mysh-malenkaya-2.jpg);"
                           + "       } "
                           + " .bordered2 {"
                           + "        border-radius: 99px 322px 60px 33px;"
