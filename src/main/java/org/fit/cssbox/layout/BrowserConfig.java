@@ -81,7 +81,15 @@ public class BrowserConfig
     
     /** Default font families */
     private Map<String, String> defaultFonts;
-    
+
+    /** Maximum pixels size for generated image.
+     * Full frame 4K screen size in pixels*/
+    public static final int MAX_PIXELS_SIZE = 12_582_912;
+    /** Maximum width of result item */
+    public static final double MAX_WIDTH = 4096;
+    /** Maximum height of result item */
+    public static final double MAX_HEIGHT = 3072;
+
     /**
      * Creates a new config with default values of the options.
      */

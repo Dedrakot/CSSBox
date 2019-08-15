@@ -141,7 +141,14 @@ public class BackgroundImage extends ContentImage
         if (bounds.width > 0 && bounds.height > 0)
         {
             computeCoordinates(bounds);
-            BufferedImage img = new BufferedImage(bounds.width, bounds.height, BufferedImage.TYPE_INT_ARGB);
+            int width = bounds.width;
+            int height = bounds.height;
+            if ((long)width * height > BrowserConfig.MAX_PIXELS_SIZE) {
+                double ratio = Math.max(width / BrowserConfig.MAX_WIDTH, height / BrowserConfig.MAX_HEIGHT);
+                width = (int)(width/ratio);
+                height = (int)(height/ratio);
+            }
+            BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = img.createGraphics();
             
             if (repeatx && repeaty)

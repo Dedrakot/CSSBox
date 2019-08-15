@@ -184,9 +184,15 @@ public class BrowserCanvas extends JPanel
         
         if (createImage && (viewport.getWidth() > dim.width || viewport.getHeight() > dim.height))
         {
-            img = new BufferedImage(Math.max(viewport.getWidth(), dim.width),
-                                    Math.max(viewport.getHeight(), dim.height),
-                                    BufferedImage.TYPE_INT_RGB);
+            int width = Math.max(viewport.getWidth(), dim.width);
+            int height = Math.max(viewport.getHeight(), dim.height);
+            if ((long)width * height > BrowserConfig.MAX_PIXELS_SIZE) {
+                double ratio = Math.max(width / BrowserConfig.MAX_WIDTH, height / BrowserConfig.MAX_HEIGHT);
+                width = (int)(width/ratio);
+                height = (int)(height/ratio);
+            }
+
+            img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             ig = img.createGraphics();
         }
         
