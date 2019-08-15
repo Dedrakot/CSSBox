@@ -30,6 +30,7 @@ import java.util.Vector;
 
 import cz.vutbr.web.css.CSSProperty;
 import cz.vutbr.web.css.CSSProperty.Clip;
+import cz.vutbr.web.css.CSSProperty.Overflow;
 import cz.vutbr.web.css.NodeData;
 import cz.vutbr.web.css.TermLength;
 import cz.vutbr.web.css.TermLengthOrPercent;
@@ -1790,6 +1791,7 @@ public class BlockBox extends ElementBox
                             if (isVisible())
                                 getViewport().getRenderer().renderElementBackground(this);
                             drawChildren(turn);
+                            drawBorders();
                         }
                         break;
                     case DRAW_FLOAT:
@@ -1801,6 +1803,7 @@ public class BlockBox extends ElementBox
                         }
                         else
                             drawChildren(turn);
+                        drawBorders();
                         break;
                     case DRAW_INLINE:
                         //do nothing but check the children
@@ -1809,13 +1812,20 @@ public class BlockBox extends ElementBox
                             getViewport().getRenderer().startElementContents(this);
                             drawChildren(turn);
                             getViewport().getRenderer().finishElementContents(this);
+                            drawBorders();
                         }
                         break;
                 }
             }
         }
     }
-    
+
+    protected void drawBorders() {
+        if (Overflow.HIDDEN.equals(getOverflowX()) || Overflow.HIDDEN.equals(getOverflowY())) {
+            getViewport().getRenderer().renderElementBorder(this);
+        }
+    }
+
     @Override
     protected Rectangle applyClip(Shape current, Rectangle newclip)
     {
@@ -1846,6 +1856,15 @@ public class BlockBox extends ElementBox
             return super.getClippedContentBounds();
         else
             return super.getClippedContentBounds().intersection(cr);
+    }
+
+    public void addLayerBoundsClip(Graphics2D g) {
+        if (borderRadius != null)
+            g.clip(new ArcCorneredRectangle(getAbsoluteSingleSizeBorderBounds(), borderRadius));
+        else
+            g.clip(getAbsolutePaddingBounds());
+        if (clipblock != null)
+            clipblock.addLayerBoundsClip(g);
     }
 
     /**

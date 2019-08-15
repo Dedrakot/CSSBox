@@ -151,6 +151,10 @@ public class SVGRenderer implements BoxRenderer
     }
 
     @Override
+    public void renderElementBorder(ElementBox elem) {
+    }
+
+    @Override
     public void renderMarker(ListItemBox elem)
     {
         if (elem.getMarkerImage() != null)

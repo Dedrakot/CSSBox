@@ -89,6 +89,11 @@ public class GraphicsRenderer implements BoxRenderer
             g.setTransform(origAt);
     }
 
+    public void renderElementBorder(ElementBox elem)
+    {
+        elem.drawBorder(g);
+    }
+
     @Override
     public void renderMarker(ListItemBox elem)
     {
