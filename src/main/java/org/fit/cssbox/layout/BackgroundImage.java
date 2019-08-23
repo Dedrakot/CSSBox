@@ -26,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.net.URL;
 
+import org.fit.cssbox.misc.CanvasSizeLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,7 +142,8 @@ public class BackgroundImage extends ContentImage
         if (bounds.width > 0 && bounds.height > 0)
         {
             computeCoordinates(bounds);
-            BufferedImage img = new BufferedImage(bounds.width, bounds.height, BufferedImage.TYPE_INT_ARGB);
+            CanvasSizeLimiter sizeLimiter = new CanvasSizeLimiter(bounds.width, bounds.height);
+            BufferedImage img = new BufferedImage(sizeLimiter.getWidth(), sizeLimiter.getHeight(), BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = img.createGraphics();
             
             if (repeatx && repeaty)
