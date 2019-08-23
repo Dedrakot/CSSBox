@@ -6,12 +6,12 @@
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *  
+ *
  * CSSBox is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
- *  
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with CSSBox. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -26,6 +26,7 @@ import java.net.URL;
 
 import javax.swing.*;
 
+import org.fit.cssbox.misc.CanvasSizeLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
@@ -37,7 +38,7 @@ import org.fit.cssbox.render.GraphicsRenderer;
  * This class provides an abstraction of a browser rendering area and the main layout engine
  * interface. Afrer the layout, a document image is created by drawing all the boxes and it
  * is drawn on the component.
- * 
+ *
  * @author  burgetr
  */
 public class BrowserCanvas extends JPanel
@@ -56,13 +57,13 @@ public class BrowserCanvas extends JPanel
     protected boolean createImage;
     protected boolean autoSizeUpdate;
     protected boolean autoMediaUpdate;
-    
-    /** 
+
+    /**
      * Creates a new instance of the browser engine for a document. After creating the engine,
      * the layout itself may be computed by calling {@link #createLayout(Dimension)}.
      * @param root the &lt;body&gt; element of the document to be rendered
      * @param decoder the CSS decoder used to compute the style
-     * @param baseurl the document base URL   
+     * @param baseurl the document base URL
      */
     public BrowserCanvas(org.w3c.dom.Element root, DOMAnalyzer decoder, URL baseurl)
     {
@@ -74,14 +75,14 @@ public class BrowserCanvas extends JPanel
         this.autoSizeUpdate = true;
         this.autoMediaUpdate = true;
     }
-    
-    /** 
+
+    /**
      * Creates a new instance of the browser engine for a document and creates the layout.
-     * 
+     *
      * @param root the &lt;body&gt; element of the document to be rendered
      * @param decoder the CSS decoder used to compute the style
      * @param dim the preferred canvas dimensions
-     * @param baseurl the document base URL   
+     * @param baseurl the document base URL
      */
     public BrowserCanvas(org.w3c.dom.Element root,
                          DOMAnalyzer decoder,
@@ -90,7 +91,7 @@ public class BrowserCanvas extends JPanel
         this(root, decoder, baseurl);
         createLayout(dim);
     }
-    
+
     /**
      * Obtains the current browser configuration.
      * @return current configuration.
@@ -120,7 +121,7 @@ public class BrowserCanvas extends JPanel
         else
             return viewport.getRootBox();
     }
-    
+
     /**
      * After creating the layout, the viewport box can be accessed through this method.
      * @return the viewport box. This box provides a container of all the rendered boxes.
@@ -129,7 +130,7 @@ public class BrowserCanvas extends JPanel
     {
     	return viewport;
     }
-    
+
     /**
      * Creates the document layout according to the given viewport size where the visible area size
      * is equal to the whole canvas. If the size of the resulting page is greater than the specified
@@ -141,12 +142,12 @@ public class BrowserCanvas extends JPanel
     {
         createLayout(dim, new Rectangle(dim));
     }
-    
+
     /**
-     * Creates the document layout according to the canvas and viewport size and position. If the size 
+     * Creates the document layout according to the canvas and viewport size and position. If the size
      * of the resulting page is greater than the specified one (e.g. there is an explicit width or height
      * specified for the resulting page), the total canvas size is updated automatically.
-     * @param dim the total canvas size 
+     * @param dim the total canvas size
      * @param visibleRect the viewport (the visible area) size and position
      */
     public void createLayout(Dimension dim, Rectangle visibleRect)
@@ -154,13 +155,13 @@ public class BrowserCanvas extends JPanel
         if (createImage)
             img = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_RGB);
         Graphics2D ig = img.createGraphics();
-        
+
         if (autoMediaUpdate)
         {
             decoder.getMediaSpec().setDimensions(visibleRect.width, visibleRect.height);
             decoder.recomputeStyles();
         }
-        
+
         log.trace("Creating boxes");
         BoxFactory factory = new BoxFactory(decoder, baseurl);
         factory.setConfig(config);
@@ -170,7 +171,7 @@ public class BrowserCanvas extends JPanel
         log.trace("We have " + factory.next_order + " boxes");
         viewport.setVisibleRect(visibleRect);
         viewport.initSubtree();
-        
+
         log.trace("Layout for "+dim.width+"px");
         viewport.doLayout(dim.width, true, true);
         log.trace("Resulting size: " + viewport.getWidth() + "x" + viewport.getHeight() + " (" + viewport + ")");
@@ -181,49 +182,44 @@ public class BrowserCanvas extends JPanel
             viewport.updateBounds(dim);
             log.trace("Resulting size: " + viewport.getWidth() + "x" + viewport.getHeight() + " (" + viewport + ")");
         }
-        
+
         if (createImage && (viewport.getWidth() > dim.width || viewport.getHeight() > dim.height))
         {
-            int width = Math.max(viewport.getWidth(), dim.width);
-            int height = Math.max(viewport.getHeight(), dim.height);
-            if ((long)width * height > BrowserConfig.MAX_PIXELS_SIZE) {
-                double ratio = Math.max(width / BrowserConfig.MAX_WIDTH, height / BrowserConfig.MAX_HEIGHT);
-                width = (int)(width/ratio);
-                height = (int)(height/ratio);
-            }
-
-            img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            CanvasSizeLimiter sizeLimiter = new CanvasSizeLimiter(Math.max(viewport.getWidth(), dim.width),
+                    Math.max(viewport.getHeight(), dim.height));
+            img = new BufferedImage(sizeLimiter.getWidth(), sizeLimiter.getHeight(), BufferedImage.TYPE_INT_ARGB);
             ig = img.createGraphics();
         }
-        
+
         log.trace("Positioning for "+viewport.getWidth()+"x"+viewport.getHeight()+"px");
         viewport.absolutePositions();
-        
+
         log.trace("Drawing");
         clearCanvas();
-        GraphicsRenderer r = new GraphicsRenderer(ig); 
+        GraphicsRenderer r = new GraphicsRenderer(ig);
         viewport.draw(r);
         r.close();
         setPreferredSize(new Dimension(img.getWidth(), img.getHeight()));
         revalidate();
     }
-    
+
     public void updateVisibleArea(Rectangle visibleRect)
     {
         viewport.setVisibleRect(visibleRect);
         viewport.absolutePositions();
         clearCanvas();
-        GraphicsRenderer r = new GraphicsRenderer(getImageGraphics()); 
+        GraphicsRenderer r = new GraphicsRenderer(getImageGraphics());
         viewport.draw(r);
         r.close();
         revalidate();
     }
-    
-    public void paintComponent(Graphics g) 
+
+    @Override
+    public void paintComponent(Graphics g)
     {
         super.paintComponent(g);
         g.drawImage(img, 0, 0, null);
-    }    
+    }
 
     /**
      * Fills the whole canvas with the white background.
@@ -233,7 +229,7 @@ public class BrowserCanvas extends JPanel
         Graphics2D ig = img.createGraphics();
         viewport.drawBackground(ig);
     }
-    
+
     /**
      * Redraws all the rendered boxes.
      */
@@ -244,7 +240,7 @@ public class BrowserCanvas extends JPanel
         viewport.draw(new GraphicsRenderer(ig));
         revalidate();
     }
-    
+
     /**
      * @return the graphics context for drawing in the page image
      */
@@ -252,7 +248,7 @@ public class BrowserCanvas extends JPanel
     {
         return img.createGraphics();
     }
-    
+
     /**
      * @return image containing the rendered page
      */
@@ -260,7 +256,7 @@ public class BrowserCanvas extends JPanel
     {
         return img;
     }
-    
+
     /**
      * Sets a custom image that is used for rendering. Setting the custom image prevents BrowserCanvas
      * from creating the image automatically. This can be used for rendering to an image of a specific
@@ -272,7 +268,7 @@ public class BrowserCanvas extends JPanel
         img = image;
         createImage = false;
     }
-    
+
     /**
      * Enables or disables the automatic viewport size update according to its contents. This is enabled by default.
      * @param b <code>true</code> for enable, <code>false</code> for disable.
@@ -281,7 +277,7 @@ public class BrowserCanvas extends JPanel
     {
         autoSizeUpdate = b;
     }
-    
+
     /**
      * Checks whether the automatic viewport size update is enabled.
      * @return <code>true</code> when enabled
@@ -296,14 +292,14 @@ public class BrowserCanvas extends JPanel
      * When enabled, the size in the media specification is updated automatically when
      * {@link BrowserCanvas#createLayout(Dimension, Rectangle)} is called. When disabled, the media specification
      * is not modified automatically. By default, the automatic update is enabled.
-     * 
+     *
      * @param autoMediaUpdate {@code true} when enabled.
      */
     public void setAutoMediaUpdate(boolean autoMediaUpdate)
     {
         this.autoMediaUpdate = autoMediaUpdate;
     }
-    
+
     /**
      * Checks whether the automatic media update is enabled.
      * @return {@code true} if enabled.
