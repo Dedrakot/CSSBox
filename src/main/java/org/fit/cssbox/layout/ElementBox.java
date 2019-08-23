@@ -20,8 +20,6 @@
 
 package org.fit.cssbox.layout;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -29,8 +27,6 @@ import java.util.List;
 import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
-
-import javax.imageio.ImageIO;
 
 import cz.vutbr.web.css.*;
 import cz.vutbr.web.css.CSSProperty.BackgroundAttachment;
@@ -962,10 +958,10 @@ abstract public class ElementBox extends Box
      */
     public Rectangle getAbsoluteSingleSizeBorderBounds()
     {
-        return new Rectangle(absbounds.x + emargin.left,
-                absbounds.y + emargin.top,
-                content.width + padding.left + padding.right + border.top * 2,
-                content.height + padding.top + padding.bottom + border.top * 2);
+        return new Rectangle(absbounds.x + emargin.left + border.top/2,
+                absbounds.y + emargin.top + border.top/2,
+                content.width + padding.left + padding.right + border.top,
+                content.height + padding.top + padding.bottom + border.top);
     }
     
     /**
@@ -1135,18 +1131,18 @@ abstract public class ElementBox extends Box
         if (clipblock != null)
             clipblock.addLayerBoundsClip(g);
         ctx.updateGraphics(g);
-
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         if (borderRadius != null) {
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            Rectangle bg = getAbsoluteSingleSizeBorderBounds();
-            ArcCorneredRectangle shape = new ArcCorneredRectangle(bg, borderRadius);
-            g.clip(shape);
+            Rectangle absoluteSingleSizeBorderBounds = getAbsoluteSingleSizeBorderBounds();
+            AdaptingRectangle bg = new AdaptingRectangle(absoluteSingleSizeBorderBounds);
+            Rectangle rect = border.top != 0 ? bg.getBackground() : absoluteSingleSizeBorderBounds;
+            ArcCorneredRectangle shape = new ArcCorneredRectangle(rect, borderRadius);
             if (bgimages != null) {
                 Paint oldPaint = g.getPaint();
                 for (BackgroundImage img : bgimages) {
                     BufferedImage bimg = img.getBufferedImage();
                     if (bimg != null) {
-                        g.setPaint(new TexturePaint(bimg, bg));
+                        g.setPaint(new TexturePaint(bimg, rect));
                         g.fill(shape);
                     }
                 }
@@ -1157,7 +1153,7 @@ abstract public class ElementBox extends Box
             }
             BlockBox blockBox = (BlockBox) this;
             if (!Overflow.HIDDEN.equals(blockBox.getOverflowX()) && !Overflow.HIDDEN.equals(blockBox.getOverflowY())) {
-                drawBorderRadiusBorder(g, shape);
+               drawBorderRadiusBorder(g, new ArcCorneredRectangle(bg.getBorder(), borderRadius));
             }
         } else {
 
@@ -1213,13 +1209,12 @@ abstract public class ElementBox extends Box
             }
             g.setColor(clr);
             if (BorderStyle.DASHED == bst)
-                g.setStroke(new BasicStroke(border.top * 2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1,  new float[]{border.top*2, border.top} ,0));
+                g.setStroke(new BasicStroke(border.top, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1,  new float[]{border.top*2, border.top} ,0));
             else
-                g.setStroke(new BasicStroke(border.top * 2));
+                g.setStroke(new BasicStroke(border.top));
             Shape oldClip = g.getClip();
             if (clipblock != null)
                 clipblock.addLayerBoundsClip(g);
-            g.clip(shape);
             g.draw(shape);
             g.setClip(oldClip);
         }
@@ -1662,6 +1657,38 @@ abstract public class ElementBox extends Box
                 if (scontext != null) //clear this context if it exists (remove old children)
                     scontext.clear();
             }
+        }
+    }
+
+    /** To avoid a problem of antialiasing background and border. */
+    private static class AdaptingRectangle {
+
+        private final Rectangle rectangle;
+        private boolean isAdapting;
+
+        public AdaptingRectangle(Rectangle rectangle) {
+            this.rectangle = rectangle;
+        }
+
+        public Rectangle getBackground() {
+            if (!isAdapting) {
+                rectangle.width--;
+                rectangle.height--;
+                rectangle.x++;
+                rectangle.y++;
+                isAdapting = true;
+            }
+            return rectangle;
+        }
+        public Rectangle getBorder() {
+            if (isAdapting) {
+                rectangle.x--;
+                rectangle.y--;
+                rectangle.width++;
+                rectangle.height++;
+                isAdapting = false;
+            }
+            return rectangle;
         }
     }
     
