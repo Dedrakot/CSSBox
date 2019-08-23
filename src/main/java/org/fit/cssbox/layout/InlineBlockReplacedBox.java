@@ -220,8 +220,6 @@ public class InlineBlockReplacedBox extends InlineBlockBox implements ReplacedBo
             Shape oldclip = g.getClip();
             if (clipblock != null)
                 clipblock.addLayerBoundsClip(g);
-            if (oldclip != null)
-                g.clip(oldclip);
             obj.draw(g, boxw, boxh);
             g.setClip(oldclip);
         }

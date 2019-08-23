@@ -167,8 +167,6 @@ public class BlockReplacedBox extends BlockBox implements ReplacedBox
             Shape oldclip = g.getClip();
             if (clipblock != null)
                 clipblock.addLayerBoundsClip(g);
-            if (oldclip != null)
-                g.clip(oldclip);
             obj.draw(g, boxw, boxh);
             g.setClip(oldclip);
         }
