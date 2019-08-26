@@ -81,7 +81,7 @@ public class BrowserConfig
     
     /** Default font families */
     private Map<String, String> defaultFonts;
-    
+
     /**
      * Creates a new config with default values of the options.
      */
