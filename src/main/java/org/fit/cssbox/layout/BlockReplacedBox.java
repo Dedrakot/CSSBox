@@ -165,7 +165,8 @@ public class BlockReplacedBox extends BlockBox implements ReplacedBox
         if (obj != null)
         {
             Shape oldclip = g.getClip();
-            g.setClip(applyClip(oldclip, getClippedContentBounds()));
+            if (clipblock != null)
+                clipblock.addLayerBoundsClip(g);
             obj.draw(g, boxw, boxh);
             g.setClip(oldclip);
         }
@@ -184,12 +185,14 @@ public class BlockReplacedBox extends BlockBox implements ReplacedBox
                         if (floating == FLOAT_NONE)
                         {
                             getViewport().getRenderer().renderElementBackground(this);
+                            drawBorders();
                         }
                         break;
                     case DRAW_FLOAT:
                         if (floating != FLOAT_NONE)
                         {
                             getViewport().getRenderer().renderElementBackground(this);
+                            drawBorders();
                             getViewport().getRenderer().startElementContents(this);
                             getViewport().getRenderer().renderReplacedContent(this);
                             getViewport().getRenderer().finishElementContents(this);
@@ -225,6 +228,7 @@ public class BlockReplacedBox extends BlockBox implements ReplacedBox
             //6.the child stacking contexts with stack level 0 and the positioned descendants with stack level 0.
             //7.the child stacking contexts with positive stack levels (least positive first).
             getViewport().getRenderer().finishElementContents(this);
+            drawBorders();
         }
     }
 }
