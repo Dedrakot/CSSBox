@@ -31,6 +31,7 @@ import cz.vutbr.web.css.TermLength;
 import cz.vutbr.web.css.TermLengthOrPercent;
 import cz.vutbr.web.css.TermRect;
 
+import cz.vutbr.web.csskit.TermListImpl;
 import org.fit.cssbox.css.HTMLNorm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,6 +179,8 @@ public class BlockBox extends ElementBox
     
     /** Clipping region specified using the clip: property (with absolute coordinates) */
     protected TermRect clipRegion;
+
+    private BorderRadiusSet borderRadius;
     
     //=====================================================================
     
@@ -2541,7 +2544,42 @@ public class BlockBox extends ElementBox
             }
         }
     }
-    
+
+    @Override
+    protected void loadBorders(CSSDecoder dec, float contw)
+    {
+        super.loadBorders(dec, contw);
+        borderRadius = readBorderRadiusSet(dec, contw);
+    }
+
+    private BorderRadiusSet readBorderRadiusSet(CSSDecoder dec, float contw)
+    {
+        BorderRadiusAngle topLeft = readCornerAngle("border-top-left-radius", dec, contw);
+        BorderRadiusAngle topRight = readCornerAngle("border-top-right-radius", dec, contw);
+        BorderRadiusAngle bottomLeft = readCornerAngle("border-bottom-left-radius", dec, contw);
+        BorderRadiusAngle bottomRight = readCornerAngle("border-bottom-right-radius", dec, contw);
+        return topLeft != null || topRight != null || bottomLeft != null || bottomRight != null ?
+                new BorderRadiusSet(topLeft, topRight, bottomLeft, bottomRight) : null;
+    }
+
+    private BorderRadiusAngle readCornerAngle(String name, CSSDecoder dec, float contw)
+    {
+        TermListImpl borderRadius = (TermListImpl) style.getValue(name, true);
+        if (borderRadius != null) {
+            TermLengthOrPercent horizontal = (TermLengthOrPercent) borderRadius.get(0);
+            TermLengthOrPercent vertical = (TermLengthOrPercent) borderRadius.get(1);
+            VisualContext context = dec.getContext();
+            BorderRadiusAngle ret = new BorderRadiusAngle(context.pxLength(horizontal, contw), context.pxLength(vertical, contw));
+            return (int) ret.vertical < 1 || (int) ret.horizontal < 1 ? null : ret;
+        }
+        return null;
+    }
+
+    @Override
+    public BorderRadiusSet getBorderRadiusSet()
+    {
+        return borderRadius;
+    }
 }
 
 /**

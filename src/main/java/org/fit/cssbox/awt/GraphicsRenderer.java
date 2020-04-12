@@ -6,12 +6,12 @@
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *  
+ *
  * CSSBox is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
- *  
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with CSSBox. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -19,6 +19,9 @@
  */
 package org.fit.cssbox.awt;
 
+import java.awt.Paint;
+import java.awt.TexturePaint;
+import java.awt.RenderingHints;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.FontMetrics;
@@ -35,6 +38,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import cz.vutbr.web.css.NodeData;
+import org.fit.cssbox.layout.ArcCorneredRectangle;
 import org.fit.cssbox.css.BackgroundDecoder;
 import org.fit.cssbox.layout.BackgroundImage;
 import org.fit.cssbox.layout.BlockBox;
@@ -62,7 +67,7 @@ import cz.vutbr.web.css.CSSProperty.TextDecoration;
 
 /**
  * This renderers displays the boxes graphically using the given Graphics2D context.
- * 
+ *
  * @author burgetr
  */
 public class GraphicsRenderer extends StructuredRenderer
@@ -71,8 +76,8 @@ public class GraphicsRenderer extends StructuredRenderer
     protected Graphics2D g;
 
     /** applied transformations */
-    protected Map<ElementBox, AffineTransform> savedTransforms;
-    
+    protected Map<ElementBox, DrawState> savedTransforms;
+
     /**
      * Constructs a renderer using the given graphics contexts.
      * @param g The graphics context used for painting the boxes.
@@ -80,9 +85,9 @@ public class GraphicsRenderer extends StructuredRenderer
     public GraphicsRenderer(Graphics2D g)
     {
         this.g = g;
-        savedTransforms = new HashMap<ElementBox, AffineTransform>();
+        savedTransforms = new HashMap<ElementBox, DrawState>();
     }
-    
+
     /**
      * Sets the default Graphics2D parametres and configures according to a given visual context.
      * @param g The graphics to be configured.
@@ -92,37 +97,78 @@ public class GraphicsRenderer extends StructuredRenderer
     {
         ctx.updateGraphics(g);
     }
-    
+
     /**
      * Clears the drawing area represented by a Viewport and fills it with a background color.
-     * @param vp the Viewport for obtaining the canvas area and the background color 
+     * @param vp the Viewport for obtaining the canvas area and the background color
      */
     public void clearCanvas()
     {
         clearViewport(getViewport());
     }
-    
+
     //====================================================================================================
-    
+
     public void startElementContents(ElementBox elem)
     {
+        AffineTransform oldTransform = null;
+        Shape oldClip = null;
+        boolean restoreClip = false;
+
         //setup transformations for the contents
         AffineTransform at = Transform.createTransform(elem);
-        if (at != null)
-        {
-            savedTransforms.put(elem, g.getTransform());
+        if (at != null) {
+            oldTransform = g.getTransform();
             g.transform(at);
         }
+
+        Shape customClip = customClip(elem);
+        if (customClip != null) {
+            restoreClip = true;
+            oldClip = g.getClip();
+            g.clip(customClip);
+        }
+
+        if (restoreClip || oldTransform != null) {
+            savedTransforms.put(elem, new DrawState(oldTransform, oldClip, restoreClip));
+        }
+    }
+
+    private static Shape customClip(ElementBox elem)
+    {
+        if (elem.getBorderRadiusSet() != null) {
+            return new ArcCorneredRectangle(getBorderRadiusBounds(elem), elem.getBorderRadiusSet());
+        }
+        return null;
+    }
+
+    /**
+     * Returns the bounds of the border edge (the content, padding and border)
+     * @return a Rectangle representing the absolute border bounds with only one type of border
+     * (because now boxes with border-radius support only one size border(choose border.top))
+     * @param elem
+     */
+    static Rectangle2D.Float getBorderRadiusBounds(ElementBox elem)
+    {
+        Rectangle absbounds = elem.getAbsoluteBounds();
+        LengthSet emargin = elem.getEMargin();
+        org.fit.cssbox.layout.Dimension content = elem.getContent();
+        LengthSet padding = elem.getPadding();
+        LengthSet border = elem.getBorder();
+        return new Rectangle2D.Float(absbounds.x + emargin.left + border.top/2,
+                absbounds.y + emargin.top + border.top/2,
+                content.width + padding.left + padding.right + border.top,
+                content.height + padding.top + padding.bottom + border.top);
     }
 
     public void finishElementContents(ElementBox elem)
     {
-        //restore the stransformations
-        AffineTransform origAt = savedTransforms.get(elem);
-        if (origAt != null)
-            g.setTransform(origAt);
+        DrawState state = savedTransforms.get(elem);
+        if (state != null) {
+            state.restore(this, elem);
+        }
     }
-    
+
     public void renderElementBackground(ElementBox elem)
     {
         AffineTransform origAt = null;
@@ -132,11 +178,11 @@ public class GraphicsRenderer extends StructuredRenderer
             origAt = g.getTransform();
             g.transform(at);
         }
-        
+
         if (elem instanceof Viewport)
             clearViewport((Viewport) elem);
         drawBackground(elem, g);
-        
+
         if (origAt != null)
             g.setTransform(origAt);
     }
@@ -164,101 +210,154 @@ public class GraphicsRenderer extends StructuredRenderer
                 g.transform(at);
             }
         }
-        
+
         drawReplacedContent(box, g);
-        
+
         if (origAt != null)
             g.setTransform(origAt);
     }
 
     public void close()
     {
-    }    
-    
+    }
+
     //=============================================================================================
     // ElementBox
-    
+
     protected void clearViewport(Viewport vp)
     {
         Color bgcolor = convertColor(vp.getConfig().getViewportBackgroundColor());
         if (getViewportBackground() != null && getViewportBackground().getBgcolor() != null)
             bgcolor = convertColor(getViewportBackground().getBgcolor());
-        
+
         Color color = g.getColor();
         g.setColor(bgcolor);
         g.fillRect(0, 0, Math.round(vp.getCanvasWidth()), Math.round(vp.getCanvasHeight()));
         g.setColor(color);
     }
-    
-    /** 
+
+    /**
      * Draws the background and border of an element box.
-     * @param g the graphics context used for drawing 
+     * @param g the graphics context used for drawing
      */
-    protected void drawBackground(ElementBox elem, Graphics2D g)
-    {
+    protected void drawBackground(ElementBox elem, Graphics2D g) {
         Color color = g.getColor(); //original color
         Shape oldclip = setupBoxClip(g, elem); //original clip region
         setupGraphics(g, (GraphicsVisualContext) elem.getVisualContext());
-        
+        if (elem.getBorderRadiusSet() != null) {
+            LengthSet border = elem.getBorder();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            Rectangle2D.Float base = getBorderRadiusBounds(elem);
+            Rectangle2D rect = border.top != 0 ? adoptBackground(base) : base;
+            ArcCorneredRectangle shape = new ArcCorneredRectangle(rect, elem.getBorderRadiusSet());
+            BackgroundDecoder bg = findBackgroundSource(elem);
+            if (bg != null) {
+                if (bg.getBgcolor() != null) {
+                    g.setColor(convertColor(bg.getBgcolor()));
+                    g.fill(shape);
+                }
+                if (bg.getBackgroundImages() != null) {
+                    Paint oldPaint = g.getPaint();
+                    final BackgroundBitmap bitmap = new BackgroundBitmap(elem);
+                    for (BackgroundImage img : bg.getBackgroundImages()) {
+                        if (img instanceof BackgroundImageImage) {
+                            bitmap.addBackgroundImage((BackgroundImageImage) img);
+                        }
+                    }
+                    if (bitmap.getBufferedImage() != null) {
+                        g.setPaint(new TexturePaint(bitmap.getBufferedImage(), rect));
+                        g.fill(shape);
+                    }
+                    g.setPaint(oldPaint);
+                }
+            }
+            BlockBox blockBox = (BlockBox) elem;
+            if (!CSSProperty.Overflow.HIDDEN.equals(blockBox.getOverflowX()) && !CSSProperty.Overflow.HIDDEN.equals(blockBox.getOverflowY())) {
+                drawBorderRadiusBorder(elem, g, new ArcCorneredRectangle(base, elem.getBorderRadiusSet()));
+            }
+        } else {
         //border bounds
         Rectangle brd = elem.getAbsoluteBorderBounds();
-        
+
         //draw the background
         BackgroundDecoder bg = findBackgroundSource(elem);
-        if (bg != null)
-        {
+        if (bg != null) {
             //draw the background color
-            if (bg.getBgcolor() != null)
-            {
+            if (bg.getBgcolor() != null) {
                 g.setColor(convertColor(bg.getBgcolor()));
                 final Rectangle2D abrd = awtRect2D(brd);
                 g.fill(abrd);
             }
-            
+
             //draw the background images
-            if (bg.getBackgroundImages() != null)
-            {
+            if (bg.getBackgroundImages() != null) {
                 final BackgroundBitmap bitmap = new BackgroundBitmap(elem);
-                for (int i = bg.getBackgroundImages().size() - 1; i >= 0; i--)
-                {
+                for (int i = bg.getBackgroundImages().size() - 1; i >= 0; i--) {
                     BackgroundImage img = bg.getBackgroundImages().get(i);
-                    if (img instanceof BackgroundImageImage)
-                    {
+                    if (img instanceof BackgroundImageImage) {
                         bitmap.addBackgroundImage((BackgroundImageImage) img);
-                    }
-                    else if (img instanceof BackgroundImageGradient)
-                    {
+                    } else if (img instanceof BackgroundImageGradient) {
                         bitmap.addBackgroundImage((BackgroundImageGradient) img);
                     }
                 }
-                if (bitmap.getBufferedImage() != null)
-                {
+                if (bitmap.getBufferedImage() != null) {
                     g.drawImage(bitmap.getBufferedImage(), Math.round(brd.x), Math.round(brd.y), null);
                 }
             }
         }
-        
+
         //draw the border
         drawBorders(elem, g, brd.x, brd.y, brd.x + brd.width - 1, brd.y + brd.height - 1);
-        
+    }
         g.setClip(oldclip); //restore the clipping
         g.setColor(color); //restore original color
     }
-    
+
+    public void drawBorderRadiusBorder(ElementBox elem, Graphics2D g, ArcCorneredRectangle shape)
+    {
+        LengthSet border = elem.getBorder();
+        if (elem.getBorder().top == 0) {
+            return;
+        }
+        NodeData style = elem.getStyle();
+        TermColor tclr = style.getSpecifiedValue(TermColor.class, "border-top-color");
+        CSSProperty.BorderStyle bst = style.getProperty("border-top-style");
+        if (bst != CSSProperty.BorderStyle.HIDDEN && (tclr == null || !tclr.isTransparent())) {
+            Color clr = null;
+            if (tclr != null)
+                clr = convertColor(tclr.getValue());
+            if (clr == null) {
+                clr = convertColor(elem.getVisualContext().getColor());
+                if (clr == null)
+                    clr = Color.BLACK;
+            }
+            g.setColor(clr);
+            if (CSSProperty.BorderStyle.DASHED == bst)
+                g.setStroke(new BasicStroke(border.top, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1, new float[]{border.top * 2, border.top}, 0));
+            else
+                g.setStroke(new BasicStroke(border.top));
+            g.draw(shape);
+        }
+    }
+
+    private static Rectangle2D adoptBackground(Rectangle2D.Float borderBounds) {
+        return new Rectangle2D.Float(borderBounds.x + 1, borderBounds.y + 1, borderBounds.width - 1, borderBounds.height - 1);
+    }
+
     protected void drawBorders(ElementBox elem, Graphics2D g, float bx1, float by1, float bx2, float by2)
     {
         LengthSet border = elem.getBorder();
         if (border.top > 0 && bx2 > bx1)
             drawBorder(elem, g, bx1, by1, bx2, by1, border.top, 0, 0, "top", false);
         if (border.right > 0 && by2 > by1)
-            drawBorder(elem, g, bx2, by1, bx2, by2, border.right, -border.right + 1, 0, "right", true); 
+            drawBorder(elem, g, bx2, by1, bx2, by2, border.right, -border.right + 1, 0, "right", true);
         if (border.bottom > 0 && bx2 > bx1)
-            drawBorder(elem, g, bx1, by2, bx2, by2, border.bottom, 0, -border.bottom + 1, "bottom", true); 
+            drawBorder(elem, g, bx1, by2, bx2, by2, border.bottom, 0, -border.bottom + 1, "bottom", true);
         if (border.left > 0 && by2 > by1)
-            drawBorder(elem, g, bx1, by1, bx1, by2, border.left, 0, 0, "left", false); 
+            drawBorder(elem, g, bx1, by1, bx1, by2, border.left, 0, 0, "left", false);
     }
-    
-    protected void drawBorder(ElementBox elem, Graphics2D g, float x1, float y1, float x2, float y2, float width, 
+
+    protected void drawBorder(ElementBox elem, Graphics2D g, float x1, float y1, float x2, float y2, float width,
                             float right, float down, String side, boolean reverse)
     {
         TermColor tclr = elem.getStyle().getSpecifiedValue(TermColor.class, "border-"+side+"-color");
@@ -285,7 +384,7 @@ public class GraphicsRenderer extends StructuredRenderer
 
     //====================================================================================================
     // ListItemBox
-    
+
     /**
      * Draw the list item symbol, number or image depending on list-style-type
      */
@@ -293,7 +392,7 @@ public class GraphicsRenderer extends StructuredRenderer
     {
         setupGraphics(g, (GraphicsVisualContext) elem.getVisualContext());
         Shape oldclip = setupBoxClip(g, elem); //original clip region
-        
+
         if (elem.getMarkerImage() != null)
         {
             if (!drawListImage(elem, g))
@@ -301,10 +400,10 @@ public class GraphicsRenderer extends StructuredRenderer
         }
         else
             drawListBullet(elem, g);
-        
+
         g.setClip(oldclip);
     }
-    
+
     /**
      * Draws a bullet or text marker
      */
@@ -314,18 +413,18 @@ public class GraphicsRenderer extends StructuredRenderer
         float x = elem.getAbsoluteContentX() - 1.2f * ctx.getEm();
         float y = elem.getAbsoluteContentY() + 0.5f * ctx.getEm();
         float r = 0.4f * ctx.getEm();
-        if (elem.getStyleType() == CSSProperty.ListStyleType.CIRCLE) 
+        if (elem.getStyleType() == CSSProperty.ListStyleType.CIRCLE)
             g.draw(new Ellipse2D.Float(x, y, r, r));
-        else if (elem.getStyleType() == CSSProperty.ListStyleType.SQUARE) 
+        else if (elem.getStyleType() == CSSProperty.ListStyleType.SQUARE)
             g.fill(new Rectangle2D.Float(x, y, r, r));
         else if (elem.getStyleType() == CSSProperty.ListStyleType.DISC)
             g.fill(new Ellipse2D.Float(x, y, r, r));
         else if (elem.getStyleType() != CSSProperty.ListStyleType.NONE)
             drawListTextMarker(elem, g, elem.getMarkerText());
     }
-    
+
     /**
-     * Draws an image marker 
+     * Draws an image marker
      */
     protected boolean drawListImage(ListItemBox elem, Graphics2D g)
     {
@@ -366,18 +465,18 @@ public class GraphicsRenderer extends StructuredRenderer
         float ofs = elem.getFirstInlineBoxBaseline();
         if (ofs < 0)
             ofs = elem.getVisualContext().getBaselineOffset(); //use the font baseline
-        
+
         // Draw the string
         g.drawString(text,
                      x + (float) rect.getX() - (float) rect.getWidth(),
                      y + ofs);
     }
-    
-    
+
+
     //====================================================================================================
     // TextBox
-    
-    /** 
+
+    /**
      * Draw the text content of a text box (no subboxes)
      * @param tb the text box to draw
      * @param g the graphics context to draw on
@@ -394,12 +493,12 @@ public class GraphicsRenderer extends StructuredRenderer
         {
             Shape oldclip = setupBoxClip(g, tb);
             setupGraphics(g, (GraphicsVisualContext) tb.getVisualContext());
-            
+
             if (tb.getWordSpacing() == null && Coords.eq(tb.getExtraWidth(), 0))
                 drawAttributedString(tb, g, x, y, t);
             else
                 drawByWords(tb, g, x, y, t);
-            
+
             g.setClip(oldclip);
         }
     }
@@ -416,14 +515,14 @@ public class GraphicsRenderer extends StructuredRenderer
         else
             drawAttributedString(tb, g, x, y, text);
     }
-    
+
     /**
      * Draws a single string with eventual attributes based on the current visual context.
      */
     private void drawAttributedString(TextBox tb, Graphics2D g, float x, float y, String text)
     {
         final Set<TextDecoration> decoration = tb.getEfficientTextDecoration();
-        if (!decoration.isEmpty()) 
+        if (!decoration.isEmpty())
         {
             AttributedString as = new AttributedString(text);
             as.addAttribute(TextAttribute.FONT, ((GraphicsVisualContext) tb.getVisualContext()).getFont());
@@ -432,14 +531,14 @@ public class GraphicsRenderer extends StructuredRenderer
             if (decoration.contains(CSSProperty.TextDecoration.LINE_THROUGH))
                 as.addAttribute(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
             g.drawString(as.getIterator(), x, y + tb.getBaselineOffset());
-        } 
+        }
         else
             g.drawString(text, x, y + tb.getBaselineOffset());
     }
-    
+
     //====================================================================================================
     // Replaced boxes
-    
+
     protected void drawReplacedContent(ReplacedBox box, Graphics2D g)
     {
         final ReplacedContent obj = box.getContentObj();
@@ -449,23 +548,23 @@ public class GraphicsRenderer extends StructuredRenderer
             Rectangle2D extclip = null;
             if (box instanceof BlockBox)
                 extclip = awtRect2D(((BlockBox) box).getClippingRectangle());
-            g.setClip(applyClip(oldclip, awtRect2D(((ElementBox) box).getClippedContentBounds()), extclip));
-            
+            g.clip(applyClip(oldclip, awtRect2D(((ElementBox) box).getClippedContentBounds()), extclip));
+
             if (obj instanceof ReplacedImage)
             {
-                drawReplacedImage((ReplacedImage) obj, g, 
+                drawReplacedImage((ReplacedImage) obj, g,
                         Math.round(box.getContentObjWidth()), Math.round(box.getContentObjHeight()));
             }
             else if (obj instanceof ReplacedText)
             {
                 ((ReplacedText) obj).getContentViewport().draw(this); //draw the contents using this renderer
             }
-            
+
             g.setClip(oldclip);
         }
     }
 
-    
+
     protected void drawReplacedImage(ReplacedImage img, Graphics2D g, int width, int height)
     {
         Rectangle bounds = img.getOwner().getAbsoluteContentBounds();
@@ -492,9 +591,9 @@ public class GraphicsRenderer extends StructuredRenderer
         }
 
     }
-    
+
     //====================================================================================================
-    
+
     /**
      * Computes a new clipping region from the current one and the eventual clipping box
      * @param current current clipping region
@@ -544,11 +643,11 @@ public class GraphicsRenderer extends StructuredRenderer
             Rectangle2D extclip = null;
             if (box instanceof BlockBox)
                 extclip = awtRect2D(((BlockBox) box).getClippingRectangle());
-            g.setClip(applyClip(oldclip, awtRect2D(box.getClipBlock().getClippedContentBounds()), extclip));
+            g.clip(applyClip(oldclip, awtRect2D(box.getClipBlock().getClippedContentBounds()), extclip));
         }
         return oldclip;
     }
-    
+
     /**
      * Converts a CSSBox LengthRect to an AWT Rectangle2D for drawing.
      * @param rect the rectangle to be converted
@@ -560,7 +659,7 @@ public class GraphicsRenderer extends StructuredRenderer
             return null;
         return new Rectangle2D.Float(rect.x, rect.y, rect.width, rect.height);
     }
-    
+
     /**
      * Convetrs the CSS parser color representation to the AWT color used by CSSBox.
      * @param src Source CSS parser color representation

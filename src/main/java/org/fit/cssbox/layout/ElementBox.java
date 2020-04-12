@@ -1018,7 +1018,7 @@ abstract public class ElementBox extends Box
     {
         if (isDisplayed() && isDeclaredVisible())
         {
-            Integer[] clevels = formsStackingContext() ? getStackingContext().getZIndices() : new Integer[0]; 
+            Integer[] clevels = formsStackingContext() ? getStackingContext().getZIndices() : new Integer[0];
             
             //1.the background and borders of the element forming the stacking context.
             if (this.formsStackingContext() && this.rendersBackground())
@@ -1395,5 +1395,9 @@ abstract public class ElementBox extends Box
             }
         }
     }
-    
+
+    public BorderRadiusSet getBorderRadiusSet()
+    {
+        return null;
+    }
 }
