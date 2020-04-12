@@ -32,6 +32,7 @@ import org.fit.cssbox.layout.Dimension;
 import org.fit.cssbox.layout.Engine;
 import org.fit.cssbox.layout.Viewport;
 import org.fit.cssbox.layout.VisualContext;
+import org.fit.cssbox.misc.BufferSizeLimiter;
 import org.fit.cssbox.render.BoxRenderer;
 import org.w3c.dom.Element;
 
@@ -168,7 +169,8 @@ public class GraphicsEngine extends Engine
     {
         if (createImage)
         {
-            img = new BufferedImage((int) width, (int) height, BufferedImage.TYPE_INT_RGB);
+            BufferSizeLimiter size = new BufferSizeLimiter((int) width, (int) height);
+            img = new BufferedImage(size.getWidth(), size.getHeight(), BufferedImage.TYPE_INT_RGB);
             ig = img.createGraphics();
             setupGraphics(ig);
         }

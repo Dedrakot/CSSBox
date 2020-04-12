@@ -35,6 +35,7 @@ import org.fit.cssbox.layout.ElementBox;
 import org.fit.cssbox.layout.Rectangle;
 import org.fit.cssbox.render.BackgroundImageGradient;
 import org.fit.cssbox.render.BackgroundImageImage;
+import org.fit.cssbox.misc.BufferSizeLimiter;
 import org.fit.cssbox.render.BackgroundRepeater;
 import org.fit.cssbox.render.ElementBackground;
 import org.fit.cssbox.render.Gradient;
@@ -58,7 +59,8 @@ public class BackgroundBitmap extends ElementBackground
         super(owner);
         if (!isZeroSize())
         {
-            bgimage = new BufferedImage(Math.round(getBounds().width), Math.round(getBounds().height), BufferedImage.TYPE_INT_ARGB);
+            BufferSizeLimiter size = new BufferSizeLimiter(Math.round(getBounds().width), Math.round(getBounds().height));
+            bgimage = new BufferedImage(size.getWidth(), size.getHeight(), BufferedImage.TYPE_INT_ARGB);
             g = bgimage.createGraphics();
         }
     }
@@ -115,7 +117,7 @@ public class BackgroundBitmap extends ElementBackground
     }
 
     /**
-     * Uses the paint for creating an image of the gradient and adding it to the target bitmap. 
+     * Uses the paint for creating an image of the gradient and adding it to the target bitmap.
      * @param p the paint to be applied
      * @param img the gradient image to be drawn
      */
@@ -167,7 +169,7 @@ public class BackgroundBitmap extends ElementBackground
         stopsToPaintValues(grad, dists, colors);
         return new LinearGradientPaint(start, end, dists, colors,
                 grad.isRepeating() ? CycleMethod.REPEAT : CycleMethod.NO_CYCLE,
-                ColorSpaceType.SRGB, 
+                ColorSpaceType.SRGB,
                 new AffineTransform());
     }
 
@@ -175,9 +177,9 @@ public class BackgroundBitmap extends ElementBackground
     {
         final float cx = grad.getCx();
         final float cy = grad.getCy();
-        
+
         Point2D center = new Point2D.Float(cx, cy);
-        
+
         AffineTransform gradientTransform = new AffineTransform();
         if (!grad.isCircle())
         {
@@ -189,12 +191,12 @@ public class BackgroundBitmap extends ElementBackground
             gradientTransform.scale(1.0f, scaleY);
             gradientTransform.translate(-cx, -cy);
         }
-        
+
         // convert stops
         float[] dists = new float[grad.getStops().size()];
         java.awt.Color[] colors = new java.awt.Color[grad.getStops().size()];
         stopsToPaintValues(grad, dists, colors);
-        
+
         float rx = grad.getEfficientRx();
         if (rx < 0.1f) rx = 0.1f; //avoid zero radius
         RadialGradientPaint gp =
