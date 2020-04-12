@@ -36,7 +36,7 @@ public class BitmapImage implements ContentImage
     private BufferedImage bufferedImage;
     
     
-    protected BitmapImage(URL url, BufferedImage bufferedImage)
+    public BitmapImage(URL url, BufferedImage bufferedImage)
     {
         this.url = url;
         this.bufferedImage = bufferedImage;
