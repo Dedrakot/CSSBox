@@ -4,6 +4,7 @@ import org.fit.cssbox.io.DocumentSource;
 
 import java.awt.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
 
@@ -23,7 +24,9 @@ public class HashMapFontRegistry implements FontRegistry {
 
     @Override
     public Font decodeFont(DocumentSource fontSource, String format) throws IOException, FontFormatException {
-        //TODO decode other formats than TTF
-        return Font.createFont(Font.TRUETYPE_FONT, fontSource.getInputStream());
+        try (InputStream inputStream = fontSource.getInputStream()) {
+            //TODO decode other formats than TTF
+            return Font.createFont(Font.TRUETYPE_FONT, inputStream);
+        }
     }
 }

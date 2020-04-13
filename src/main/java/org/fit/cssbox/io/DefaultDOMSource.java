@@ -20,6 +20,7 @@
 package org.fit.cssbox.io;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.xerces.parsers.DOMParser;
 import org.cyberneko.html.HTMLConfiguration;
@@ -50,8 +51,7 @@ public class DefaultDOMSource extends DOMSource
             HTMLElements.Element li = HTMLElements.getElement(HTMLElements.LI);
             HTMLElements.Element[] oldparents = li.parent;
             li.parent = new HTMLElements.Element[oldparents.length + 1];
-            for (int i = 0; i < oldparents.length; i++)
-                li.parent[i] = oldparents[i];
+            System.arraycopy(oldparents, 0, li.parent, 0, oldparents.length);
             li.parent[oldparents.length] = HTMLElements.getElement(HTMLElements.MENU);
             neko_fixed = true;
         }
@@ -60,7 +60,9 @@ public class DefaultDOMSource extends DOMSource
         parser.setProperty("http://cyberneko.org/html/properties/names/elems", "lower");
         if (charset != null)
             parser.setProperty("http://cyberneko.org/html/properties/default-encoding", charset);
-        parser.parse(new org.xml.sax.InputSource(getDocumentSource().getInputStream()));
+        try (InputStream inputStream = getDocumentSource().getInputStream()) {
+            parser.parse(new org.xml.sax.InputSource(inputStream));
+        }
         return parser.getDocument();
     }
 

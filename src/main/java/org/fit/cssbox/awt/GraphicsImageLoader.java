@@ -102,9 +102,7 @@ public class GraphicsImageLoader implements ImageLoader
         ContentImage ret = null;
         try (DocumentSource imgsrc = ctx.getConfig().createDocumentSource(url))
         {
-            InputStream urlStream = imgsrc.getInputStream();
-            ImageInputStream imageInputStream = ImageIO.createImageInputStream(urlStream);
-            try
+            try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(imgsrc.getInputStream()))
             {
                 Iterator<ImageReader> imageReaders = ImageIO.getImageReaders(imageInputStream);
                 if (!imageReaders.hasNext())
