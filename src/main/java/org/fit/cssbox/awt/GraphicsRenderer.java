@@ -262,6 +262,8 @@ public class GraphicsRenderer extends StructuredRenderer
                     for (BackgroundImage img : bg.getBackgroundImages()) {
                         if (img instanceof BackgroundImageImage) {
                             bitmap.addBackgroundImage((BackgroundImageImage) img);
+                        }  else if (img instanceof BackgroundImageGradient) {
+                            bitmap.addBackgroundImage((BackgroundImageGradient) img);
                         }
                     }
                     if (bitmap.getBufferedImage() != null) {

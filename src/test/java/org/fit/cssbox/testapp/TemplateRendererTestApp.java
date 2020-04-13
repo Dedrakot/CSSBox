@@ -90,7 +90,7 @@ public class TemplateRendererTestApp {
                 + "           border: 2px solid red;"
                 + "           width: 500px;"
                 + "           height: 500px;"
-                + "           background-color: black;"
+                + "           background: linear-gradient(#e66465, #9198e5);"
                 + "           overflow: visible;"
                 + "           margin-top: 5px;"
                 + "       }"
