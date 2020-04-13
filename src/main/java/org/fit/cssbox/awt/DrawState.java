@@ -34,9 +34,8 @@ public class DrawState {
             g.setClip(getClip());
         }
 
-        if(elem.getBorderRadiusSet()!=null) {
-            BlockBox blockBox = (BlockBox) elem;
-            if (CSSProperty.Overflow.HIDDEN.equals(blockBox.getOverflowX()) || CSSProperty.Overflow.HIDDEN.equals(blockBox.getOverflowY())) {
+        if (elem.getBorderRadiusSet() != null) {
+            if (GraphicsRenderer.hasHiddenOverflow((BlockBox) elem)) {
                 Rectangle2D.Float base = GraphicsRenderer.getBorderRadiusBounds(elem);
                 graphicsRenderer.drawBorderRadiusBorder(elem, g, new ArcCorneredRectangle(base, elem.getBorderRadiusSet()));
             }

@@ -136,10 +136,14 @@ public class GraphicsRenderer extends StructuredRenderer
 
     private static Shape customClip(ElementBox elem)
     {
-        if (elem.getBorderRadiusSet() != null) {
+        if (elem.getBorderRadiusSet() != null && hasHiddenOverflow((BlockBox)elem)) {
             return new ArcCorneredRectangle(getBorderRadiusBounds(elem), elem.getBorderRadiusSet());
         }
         return null;
+    }
+
+    static boolean hasHiddenOverflow(BlockBox blockBox) {
+        return CSSProperty.Overflow.HIDDEN.equals(blockBox.getOverflowX()) || CSSProperty.Overflow.HIDDEN.equals(blockBox.getOverflowY());
     }
 
     /**
@@ -274,7 +278,7 @@ public class GraphicsRenderer extends StructuredRenderer
                 }
             }
             BlockBox blockBox = (BlockBox) elem;
-            if (!CSSProperty.Overflow.HIDDEN.equals(blockBox.getOverflowX()) && !CSSProperty.Overflow.HIDDEN.equals(blockBox.getOverflowY())) {
+            if (!hasHiddenOverflow(blockBox)) {
                 drawBorderRadiusBorder(elem, g, new ArcCorneredRectangle(base, elem.getBorderRadiusSet()));
             }
         } else {
