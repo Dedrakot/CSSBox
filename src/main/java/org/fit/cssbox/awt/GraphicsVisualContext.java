@@ -306,9 +306,8 @@ public class GraphicsVisualContext extends VisualContext
             String regName = FontDecoder.findRegisteredFont(url);
             if (regName == null)
             {
-                DocumentSource imgsrc = getViewport().getConfig().createDocumentSource(url);
                 Font newFont;
-                try {
+                try (DocumentSource imgsrc = getViewport().getConfig().createDocumentSource(url)) {
                     newFont = FontDecoder.decodeFont(imgsrc, format);
                 } catch (Exception e) {
                     throw new IOException(e);
