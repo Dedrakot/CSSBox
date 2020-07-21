@@ -45,6 +45,37 @@ public class TemplateRendererTestApp {
 
     @Ignore
     @Test
+    public void letterSpacing() throws IOException, SAXException {
+        String template = "<!DOCTYPE html>"
+                + "<html>"
+                + "  <head> "
+                + "    <meta charset=\"UTF-8\">"
+                + "    <style type=\"text/css\">"
+                + "       .neg {"
+                + "           letter-spacing: -1px;"
+                + "       };"
+                + "       .pos {"
+                + "           letter-spacing: 2px;"
+                + "       };"
+                + "    </style>"
+                + "  </head>"
+                + "  <body>"
+                + "    <div class=\"pos\">"
+                + "      Positive letter spacing"
+                + "    </div>"
+                + "    <div class=\"norm\">"
+                + "      Normal letter spacing"
+                + "    </div>"
+                + "    <div class=\"neg\">"
+                + "      Negative letter spacing"
+                + "    </div>"
+                + "  </body>"
+                + "</html>";
+        run(template, "tmp/img/ls.png");
+    }
+
+    @Ignore
+    @Test
     public void drawBorderedBackgroundImageCircle() throws IOException, SAXException {
         String template = "<!DOCTYPE html>"
                 + "<html>"

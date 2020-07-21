@@ -20,7 +20,6 @@
 package org.fit.cssbox.awt;
 
 import java.awt.Font;
-import java.awt.FontFormatException;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
@@ -29,7 +28,6 @@ import java.awt.font.LineMetrics;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -242,7 +240,7 @@ public class GraphicsVisualContext extends VisualContext
         Font base = createBaseFont(family, size, weight, style);
         Map<TextAttribute, Object> attributes = new HashMap<>(defaultFontAttributes);
         // add tracking when needed
-        if (spacing >= 0.0001)
+        if (Math.abs(spacing) >= 0.0001)
         {
             // TRACKING value is multiplied by font size in AWT. 
             // (0.75 has been empiricaly determined by comparing with other browsers) 
@@ -260,11 +258,10 @@ public class GraphicsVisualContext extends VisualContext
     @Override
     protected String fontAvailable(String family, boolean isBold, boolean isItalic)
     {
-        final String avail[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-        for (int i = 0; i < avail.length; i++)
-        {
-            if (avail[i].equalsIgnoreCase(family))
-                return avail[i];
+        final String[] avail = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+        for (String s : avail) {
+            if (s.equalsIgnoreCase(family))
+                return s;
         }
         return null;
     }
@@ -272,18 +269,16 @@ public class GraphicsVisualContext extends VisualContext
     @Override
     protected String getFallbackFont()
     {
-        final String avail[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+        final String[] avail = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
         if (avail.length == 0)
             return "Serif"; //no physical fonts available, give up
         //first try: helvetica
         String ret = fontAvailable("Helvetica", false, false);
         if (ret == null) //second try: anything containing "Serif" or "Sans" to avoid strange fonts
         {
-            for (int i = 0; i < avail.length; i++)
-            {
-                if (avail[i].toLowerCase().contains("sans") || avail[i].toLowerCase().contains("serif"))
-                {
-                    ret = avail[i];
+            for (String s : avail) {
+                if (s.toLowerCase().contains("sans") || s.toLowerCase().contains("serif")) {
+                    ret = s;
                     break;
                 }
             }
