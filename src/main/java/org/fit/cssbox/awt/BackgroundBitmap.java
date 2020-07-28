@@ -29,7 +29,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
 
 import org.fit.cssbox.layout.ElementBox;
 import org.fit.cssbox.layout.Rectangle;
@@ -147,17 +146,7 @@ public class BackgroundBitmap extends ElementBackground
     {
         BackgroundRepeater rep = new BackgroundRepeater();
         rep.repeatImage(getBounds(), pos, getClipped(), repeatX, repeatY,
-                (x, y) -> drawScaledImage(g, image, x, y, pos.width, pos.height, origw, origh, null));
-    }
-    
-    private void drawScaledImage(Graphics2D g, BufferedImage image,
-            float x, float y, float w, float h,
-            float origw, float origh, ImageObserver observer)
-    {
-        g.drawImage(image,
-                    Math.round(x), Math.round(y), Math.round(x + w), Math.round(y + h),
-                    0, 0, Math.round(origw), Math.round(origh),
-                    observer);
+                (x, y) -> GraphicsVisualContext.getScaleContext().drawScaledImage(g, image, x, y, pos.width, pos.height, origw, origh, null));
     }
 
     private LinearGradientPaint createLinearGradientPaint(LinearGradient grad)

@@ -54,6 +54,9 @@ import cz.vutbr.web.css.TermURI;
  */
 public class GraphicsVisualContext extends VisualContext
 {
+    private static ScaleImageContext SCALE_CONTEXT = new ScaleImageContext() {
+    };
+
     private Graphics2D g;
     private Font font; //current font
     private FontMetrics fm; //current font metrics
@@ -349,5 +352,13 @@ public class GraphicsVisualContext extends VisualContext
             imageLoader = new GraphicsImageLoader(this);
         return imageLoader;
     }
-    
+
+
+    public static ScaleImageContext getScaleContext() {
+        return SCALE_CONTEXT;
+    }
+
+    public static void setScaleContext(ScaleImageContext scaleContext) {
+        SCALE_CONTEXT = scaleContext;
+    }
 }

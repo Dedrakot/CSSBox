@@ -580,11 +580,7 @@ public class GraphicsRenderer extends StructuredRenderer
             // update our configuration
             setupGraphics(g, (GraphicsVisualContext) img.getVisualContext());
 
-            // draw image of the given size and position
-            final AffineTransform tr = new AffineTransform();
-            tr.translate(bounds.x, bounds.y);
-            tr.scale(bounds.width / img.getIntrinsicWidth(), bounds.height / img.getIntrinsicHeight());
-            g.drawImage(((BitmapImage) img.getImage()).getBufferedImage(), tr, null);
+            GraphicsVisualContext.getScaleContext().drawImageInBounds(img, g, bounds);
         }
         else
         {
